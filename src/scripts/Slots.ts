@@ -26,20 +26,19 @@ export class Slots extends Phaser.GameObjects.Container {
     private connectionTimeout!: Phaser.Time.TimerEvent;
     constructor(scene: Phaser.Scene, uiContainer: UiContainer, callback: () => void, SoundManager : SoundManager) {
         super(scene);
-
         this.resultCallBack = callback;
         this.uiContainer = uiContainer;
         this.SoundManager = SoundManager
         this.slotMask = new Phaser.GameObjects.Graphics(scene);
         
-        this.maskWidth = gameConfig.scale.width / 1.8;
-        this.maskHeight = 570;
+        this.maskWidth = gameConfig.scale.width / 1.2;
+        this.maskHeight = 470;
         this.slotMask.fillStyle(0xffffff, 1);
         this.slotMask.fillRoundedRect(0, 0, this.maskWidth, this.maskHeight, 20);
         // mask Position set
         this.slotMask.setPosition(
-            gameConfig.scale.width / 4,
-            gameConfig.scale.height /4.1 
+            gameConfig.scale.width / 6.5,
+            gameConfig.scale.height / 3.4
         );
         // this.add(this.slotMask);
         // Filter and pick symbol keys based on the criteria
@@ -49,17 +48,17 @@ export class Slots extends Phaser.GameObjects.Container {
         const exampleSymbol = new Phaser.GameObjects.Sprite(scene, 0, 0, this.getRandomSymbolKey());
         this.symbolWidth = exampleSymbol.displayWidth/ 4;
         this.symbolHeight = exampleSymbol.displayHeight/4;
-        this.spacingX = this.symbolWidth * 3.1; // Add some spacing
-        this.spacingY = this.symbolHeight * 4; // Add some spacing
+        this.spacingX = 345; // Add some spacing
+        this.spacingY = 250; // Add some spacing
         const startPos = {
-            x: gameConfig.scale.width / 3,
-            y: gameConfig.scale.height /3.25     
+            x: gameConfig.scale.width / 4.2,
+            y: gameConfig.scale.height / 2.5 
         };
         const totalSymbol = 7;
         const visibleSymbol = 3;
         const startIndex = 1;
         const initialYOffset = (totalSymbol - startIndex - visibleSymbol) * this.spacingY;
-        for (let i = 0; i < 5; i++) { // 5 columns
+        for (let i = 0; i < 3; i++) { // 5 columns
             const reelContainer = new Phaser.GameObjects.Container(scene);
             this.reelContainers.push(reelContainer); // Store the container for future use
             
@@ -72,7 +71,7 @@ export class Slots extends Phaser.GameObjects.Container {
                     startPos.x + i * this.spacingX,
                     startPos.y + j * this.spacingY
                 );
-                slot.symbol.setScale(0.8, 0.8)
+                slot.symbol.setScale(0.9, 0.9)
                 slot.startX = slot.symbol.x;
                 slot.startY = slot.symbol.y;
                 this.slotSymbols[i].push(slot);                

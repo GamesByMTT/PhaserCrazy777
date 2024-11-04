@@ -5,6 +5,7 @@ import { TextLabel } from './TextLabel';
 import { gameConfig } from './appconfig';
 import MainScene from '../view/MainScene';
 import SoundManager from './SoundManager';
+import PathBase from 'phaser3-rex-plugins/plugins/gameobjects/shape/shapes/geoms/lines/PathBase';
 // Define UiContainer as a Phaser Scene class
 export class UiContainer extends Phaser.GameObjects.Container {
     SoundManager: SoundManager
@@ -12,22 +13,31 @@ export class UiContainer extends Phaser.GameObjects.Container {
     maxbetBtn!: Phaser.GameObjects.Sprite;
     autoBetBtn!: Phaser.GameObjects.Sprite;
     freeSpinBgImg!: Phaser.GameObjects.Sprite
-    fireAnimation: Phaser.GameObjects.Sprite[] = [];
     CurrentBetText!: TextLabel;
     currentWiningText!: TextLabel;
     currentBalanceText!: TextLabel;
+    trippleSevenAmount!: TextLabel;
+    doubleSevenAmount!: TextLabel;
+    singleSevenAmount!: TextLabel;
+    barBarAmount!: TextLabel
+    barAmount!: TextLabel;
     CurrentLineText!: TextLabel;
     freeSpinText!: TextLabel;
     pBtn!: Phaser.GameObjects.Sprite;
     mBtn!: Phaser.GameObjects.Sprite
     public isAutoSpinning: boolean = false; // Flag to track if auto-spin is active
     mainScene!: Phaser.Scene
-    fireSprite1!: Phaser.GameObjects.Sprite
-    fireSprite2!: Phaser.GameObjects.Sprite
     betButtonDisable!: Phaser.GameObjects.Container
     freeSpinContainer!: Phaser.GameObjects.Container
     spinButtonSound!: Phaser.Sound.BaseSound
     normalButtonSound!: Phaser.Sound.BaseSound
+    tripple7: Phaser.GameObjects.Sprite[] = [];
+    double7: Phaser.GameObjects.Sprite[] = [];
+    single7: Phaser.GameObjects.Sprite[] = [];
+    barBarSprite: Phaser.GameObjects.Sprite [] = []
+    barSprite : Phaser.GameObjects.Sprite []=[]
+    mixSevenSprite!: Phaser.GameObjects.Sprite
+    mixBarSprite!: Phaser.GameObjects.Sprite;
 
     constructor(scene: Scene, spinCallBack: () => void, soundManager: SoundManager) {
         super(scene);
@@ -40,9 +50,87 @@ export class UiContainer extends Phaser.GameObjects.Container {
         this.winBtnInit();
         this.balanceBtnInit();
         this.BetBtnInit();
+        this.tripleSeven()
+        this.doubleSeven();
+        this.singleSeven();
+        this.barbar();
+        this.bar()
+        this.mixSeven()
         this.SoundManager = soundManager;
-        // this.freeSpininit();
-        // this.vaseInit();
+    }
+
+    mixSeven(){
+        this.mixSevenSprite = this.scene.add.sprite(gameConfig.scale.width * 0.5, gameConfig.scale.height * 0.2, "differentSeven").setScale(0.45)
+        this.mixBarSprite = this.scene.add.sprite(gameConfig.scale.width * 0.57, gameConfig.scale.height * 0.2, "differentBar").setScale(0.45)
+    }
+
+    barbar(){
+        this.barBarSprite = []
+        for(let k = 0; k < 3; k++){
+            this.barBarSprite[k] = this.scene.add.sprite(
+                gameConfig.scale.width * (0.49 + (k * 0.035)), 
+                gameConfig.scale.height * 0.07,
+                "slots4_0"
+            ).setScale(0.3)
+        }
+        const barBarAmountBg = this.scene.add.sprite(gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.07, "AmountBg").setScale(0.8);
+        this.barBarAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.07,  new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 30).toFixed(2), 27);
+        this.add([barBarAmountBg, this.barBarAmount]);
+    }
+
+    tripleSeven(){
+        this.tripple7 = [];
+        for(let i = 0; i < 3; i++) {
+            this.tripple7[i] = this.scene.add.sprite(
+                gameConfig.scale.width * (0.29 + (i * 0.035)), // Increases x position by 0.2 each time
+                gameConfig.scale.height * 0.07,
+                "slots0_0"
+            ).setScale(0.28);
+        }
+        const triple7amountBg = this.scene.add.sprite(gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.07, "AmountBg").setScale(0.8)
+        this.trippleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.07, new Number(initData.gameData.Bets[currentGameData.currentBetIndex]* 500).toFixed(2), 27, "#ffffff");
+        this.add([triple7amountBg, this.trippleSevenAmount]);
+    }
+
+    doubleSeven(){
+        this.double7 = []
+        for(let i = 0; i< 3; i++){
+            this.double7 [i]= this.scene.add.sprite(
+                gameConfig.scale.width * (0.29 + (i * 0.035)),
+                gameConfig.scale.height * 0.15,
+                "slots1_0"
+            ).setScale(0.3);
+        }
+        const double7amountBg = this.scene.add.sprite(gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.15, "AmountBg").setScale(0.8)
+        this.doubleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.15, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100).toFixed(2), 27, "#ffffff");
+        this.add([double7amountBg, this.doubleSevenAmount])
+    }
+    bar(){
+        this.barSprite = [];
+        for(let k = 0; k < 3; k ++){
+            this.barSprite[k] = this.scene.add.sprite(
+                gameConfig.scale.width * (0.49 + (k * 0.035)), 
+                gameConfig.scale.height * 0.15,
+                "slots5_0"
+            ).setScale(0.22)
+        }
+        const barSpriteAmount = this.scene.add.sprite(gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.15, "AmountBg").setScale(0.8);
+        this.barAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.15, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 20).toFixed(2), 27)
+        this.add([barSpriteAmount, this.barAmount]);
+    }
+
+    singleSeven(){
+        this.single7 = [];
+        for(let k = 0; k < 3; k++){
+            this.single7[k] = this.scene.add.sprite(
+                gameConfig.scale.width * (0.29 + (k * 0.035)),
+                gameConfig.scale.height * 0.23,
+                "slots2_0"
+            ).setScale(0.3)
+        }
+        const single7amountBg = this.scene.add.sprite(gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.23, "AmountBg").setScale(0.8)
+        this.singleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.23, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50).toFixed(2), 27, "#ffffff");
+        this.add([single7amountBg, this.singleSevenAmount]);
     }
 
     /**
@@ -59,6 +147,12 @@ export class UiContainer extends Phaser.GameObjects.Container {
             this.bnuttonMusic("buttonpressed");
             this.pBtn.setTexture('pBtnH');
             this.pBtn.disableInteractive();
+            let trippleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 500)
+            let doubleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100)
+            let singleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50)
+            this.trippleSevenAmount.updateLabelText(trippleAmount.toString())
+            this.doubleSevenAmount.updateLabelText(doubleAmount.toString());
+            this.singleSevenAmount.updateLabelText(singleAmount.toString());
             if (!currentGameData.isMoving) {
                 currentGameData.currentBetIndex++;
                 if (currentGameData.currentBetIndex >= initData.gameData.Bets.length) {
@@ -139,8 +233,10 @@ export class UiContainer extends Phaser.GameObjects.Container {
         const container = this.scene.add.container(balancePanel.x, balancePanel.y);
         balancePanel.setScale(0.8)
         // container.add(balancePanel);
+        console.log("initData.playerData.Balance", typeof(currentGameData.currentBalance));
+        
         currentGameData.currentBalance = initData.playerData.Balance;
-        this.currentBalanceText = new TextLabel(this.scene, 0, 15, currentGameData.currentBalance.toFixed(2), 27, "#ffffff");
+        this.currentBalanceText = new TextLabel(this.scene, 0, 15, new Number(currentGameData.currentBalance).toFixed(2), 27, "#ffffff");
         container.add(this.currentBalanceText);
     }
     /**

@@ -37,6 +37,7 @@ export default class MainScene extends Scene {
     lineSymbols!: LineSymbols
     onSpinSound!: Phaser.Sound.BaseSound
     logo!: Phaser.GameObjects.Sprite
+    WheelawardText!: Phaser.GameObjects.Sprite
     private mainContainer!: Phaser.GameObjects.Container;
 
     constructor() {
@@ -69,6 +70,7 @@ export default class MainScene extends Scene {
         this.SmallBoxxReel = new Phaser.GameObjects.Sprite(this, width/1.26, height/ 1.9, "SmallBoxxReel").setDisplaySize(400, 430),
         this.goldenBar = new Phaser.GameObjects.Sprite(this, width/1.255, height/1.9, "goldenBar").setDisplaySize(380, 380);
         this.centerLine = new Phaser.GameObjects.Sprite(this, width/1.9, height/1.9, "centerLine").setScale(0.8)
+        this.WheelawardText = new Phaser.GameObjects.Sprite(this, width * 0.795, height * 0.26, "Wheelaward").setScale(0.7)
         const traingleFrame: Phaser.Types.Animations.AnimationFrame[] = [];
         for (let i = 0; i < 48; i++) {
             traingleFrame.push({ key: `Triangle${i}` });
@@ -92,20 +94,18 @@ export default class MainScene extends Scene {
         this.triangleanim5.play("Traingle")
         this.triangleanim6.play("Traingle")
 
-        this.mainContainer.add([this.logo, this.reelBg, this.SmallBoxxReel,this.ReelFrame, this.seconOuterFrame, this.redBox, this.redSmallBox, this.fristFrameBg, this.goldenBar, this.smallBoxx, this.triangleanim1, this.triangleanim2, this.triangleanim3, this.triangleanim4, this.triangleanim5, this.triangleanim6, this.centerLine])
+        this.mainContainer.add([this.logo, this.reelBg, this.SmallBoxxReel,this.ReelFrame, this.seconOuterFrame,  this.redBox, this.redSmallBox, this.fristFrameBg, this.WheelawardText, this.goldenBar, this.smallBoxx, this.triangleanim1, this.triangleanim2, this.triangleanim3, this.triangleanim4, this.triangleanim5, this.triangleanim6, this.centerLine])
         this.soundManager.playSound("backgroundMusic")
 
         // Initialize UI Container
         this.uiContainer = new UiContainer(this, () => this.onSpinCallBack(), this.soundManager);
-        this.mainContainer.add(this.uiContainer);
         // // Initialize Slots
         this.slot = new Slots(this, this.uiContainer,() => this.onResultCallBack(), this.soundManager);
 
-        this.mainContainer.add([this.slot]);
-
         // Initialize UI Popups
         this.uiPopups = new UiPopups(this, this.uiContainer, this.soundManager);
-        this.mainContainer.add(this.uiPopups)
+
+        this.mainContainer.add([this.slot, this.uiContainer, this.uiPopups]);
 
         this.setupFocusBlurEvents()
     }
@@ -122,7 +122,7 @@ export default class MainScene extends Scene {
         const onSpinMusic = "onSpin"
         this.uiContainer.onSpin(false);
         this.soundManager.stopSound(onSpinMusic)
-        this.lineGenerator.showLines(ResultData.gameData.linesToEmit);
+        // this.lineGenerator.showLines(ResultData.gameData.linesToEmit);
     }
     /**
      * @method onSpinCallBack Move reel
@@ -132,7 +132,7 @@ export default class MainScene extends Scene {
         const onSpinMusic = "onSpin"
         this.soundManager.playSound(onSpinMusic)
         this.slot.moveReel();
-        this.lineGenerator.hideLines();
+        // this.lineGenerator.hideLines();
     }
 
     onAutoSpinStop(){

@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import { Globals, ResultData, initData, gambleData, gambleResult } from "./scripts/Globals";
+import { Globals, ResultData, initData, gambleData, gambleResult, currentGameData } from "./scripts/Globals";
 import MainLoader from "./view/MainLoader";
 import Disconnection from "./scripts/Disconnection";
 
@@ -61,6 +61,7 @@ export class SocketManager {
             initData.playerData = data.message.PlayerData;
             initData.UIData.symbols = data.message.UIData.paylines.symbols
             initData.gameData.BonusData = data.message.BonusData;
+            currentGameData.currentBalance = data.message.PlayerData.Balance
             console.log(data, "initData on Socket File");
           }
         }
