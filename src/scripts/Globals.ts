@@ -10,7 +10,7 @@ type globalDataType = {
   emitter: MyEmitter | undefined;
   isMobile: boolean;
   fpsStats: Stats;
-  soundResources: { [key: string]: Howl };
+  soundResources: { [key: string]: Howl & { userVolume?: number }};
   SceneHandler: SceneHandler | undefined;
   Socket: SocketManager | undefined;
   PhaserInstance: Phaser.Game | undefined;

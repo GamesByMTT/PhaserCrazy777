@@ -21,6 +21,11 @@ export class UiContainer extends Phaser.GameObjects.Container {
     singleSevenAmount!: TextLabel;
     barBarAmount!: TextLabel
     barAmount!: TextLabel;
+    doubleDollarAmount!: TextLabel;
+    mixedSeven!: TextLabel;
+    mixedBar!: TextLabel;
+    anyText!: TextLabel;
+    addDollar!: TextLabel;
     CurrentLineText!: TextLabel;
     freeSpinText!: TextLabel;
     pBtn!: Phaser.GameObjects.Sprite;
@@ -56,12 +61,22 @@ export class UiContainer extends Phaser.GameObjects.Container {
         this.barbar();
         this.bar()
         this.mixSeven()
+        this.rightRedBox();
         this.SoundManager = soundManager;
     }
 
     mixSeven(){
         this.mixSevenSprite = this.scene.add.sprite(gameConfig.scale.width * 0.5, gameConfig.scale.height * 0.2, "differentSeven").setScale(0.45)
-        this.mixBarSprite = this.scene.add.sprite(gameConfig.scale.width * 0.57, gameConfig.scale.height * 0.2, "differentBar").setScale(0.45)
+       
+        this.mixBarSprite = this.scene.add.sprite(gameConfig.scale.width * 0.57, gameConfig.scale.height * 0.2, "differentBar").setScale(0.45);
+        const mixSeveAmountbg = this.scene.add.sprite(gameConfig.scale.width * 0.5, gameConfig.scale.height * 0.24, "AmountBg").setScale(0.5);
+        this.mixedSeven = new TextLabel(this.scene, gameConfig.scale.width * 0.5, gameConfig.scale.height * 0.24, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 10).toString(), 27)
+        const mixBarAmountBg = this.scene.add.sprite(gameConfig.scale.width * 0.57, gameConfig.scale.height * 0.24, "AmountBg").setScale(0.5);
+        this.mixedBar = new TextLabel(this.scene, gameConfig.scale.width * 0.57, gameConfig.scale.height * 0.24, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 4).toString(), 27)
+        const anySprite = this.scene.add.sprite(gameConfig.scale.width * 0.63, gameConfig.scale.height * 0.2, "anyImage").setScale(0.6)
+        const anySpriteAmountBg = this.scene.add.sprite(gameConfig.scale.width * 0.63, gameConfig.scale.height * 0.24, "AmountBg").setScale(0.5);
+        this.anyText = new TextLabel(this.scene, gameConfig.scale.width * 0.63, gameConfig.scale.height * 0.24, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 2).toString(), 27)
+        this.add([mixSeveAmountbg, mixBarAmountBg, anySprite, anySpriteAmountBg]);
     }
 
     barbar(){
@@ -74,7 +89,7 @@ export class UiContainer extends Phaser.GameObjects.Container {
             ).setScale(0.3)
         }
         const barBarAmountBg = this.scene.add.sprite(gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.07, "AmountBg").setScale(0.8);
-        this.barBarAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.07,  new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 30).toFixed(2), 27);
+        this.barBarAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.07,  new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 30).toString(), 27);
         this.add([barBarAmountBg, this.barBarAmount]);
     }
 
@@ -84,11 +99,11 @@ export class UiContainer extends Phaser.GameObjects.Container {
             this.tripple7[i] = this.scene.add.sprite(
                 gameConfig.scale.width * (0.29 + (i * 0.035)), // Increases x position by 0.2 each time
                 gameConfig.scale.height * 0.07,
-                "slots0_0"
+                "slots1_0"
             ).setScale(0.28);
         }
         const triple7amountBg = this.scene.add.sprite(gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.07, "AmountBg").setScale(0.8)
-        this.trippleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.07, new Number(initData.gameData.Bets[currentGameData.currentBetIndex]* 500).toFixed(2), 27, "#ffffff");
+        this.trippleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.07, new Number(initData.gameData.Bets[currentGameData.currentBetIndex]* 500).toString(), 27, "#ffffff");
         this.add([triple7amountBg, this.trippleSevenAmount]);
     }
 
@@ -98,11 +113,11 @@ export class UiContainer extends Phaser.GameObjects.Container {
             this.double7 [i]= this.scene.add.sprite(
                 gameConfig.scale.width * (0.29 + (i * 0.035)),
                 gameConfig.scale.height * 0.15,
-                "slots1_0"
+                "slots2_0"
             ).setScale(0.3);
         }
         const double7amountBg = this.scene.add.sprite(gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.15, "AmountBg").setScale(0.8)
-        this.doubleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.15, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100).toFixed(2), 27, "#ffffff");
+        this.doubleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.15, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100).toString(), 27, "#ffffff");
         this.add([double7amountBg, this.doubleSevenAmount])
     }
     bar(){
@@ -115,7 +130,7 @@ export class UiContainer extends Phaser.GameObjects.Container {
             ).setScale(0.22)
         }
         const barSpriteAmount = this.scene.add.sprite(gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.15, "AmountBg").setScale(0.8);
-        this.barAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.15, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 20).toFixed(2), 27)
+        this.barAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.62, gameConfig.scale.height * 0.15, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 20).toString(), 27)
         this.add([barSpriteAmount, this.barAmount]);
     }
 
@@ -125,12 +140,30 @@ export class UiContainer extends Phaser.GameObjects.Container {
             this.single7[k] = this.scene.add.sprite(
                 gameConfig.scale.width * (0.29 + (k * 0.035)),
                 gameConfig.scale.height * 0.23,
-                "slots2_0"
+                "slots3_0"
             ).setScale(0.3)
         }
         const single7amountBg = this.scene.add.sprite(gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.23, "AmountBg").setScale(0.8)
-        this.singleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.23, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50).toFixed(2), 27, "#ffffff");
+        this.singleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.23, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50).toString(), 27, "#ffffff");
         this.add([single7amountBg, this.singleSevenAmount]);
+    }
+
+    rightRedBox(){
+        const tenx = this.scene.add.sprite(gameConfig.scale.width * 0.7, gameConfig.scale.height * 0.07, "slots6_0").setScale(0.4);
+        const fivex = this.scene.add.sprite(gameConfig.scale.width * 0.76, gameConfig.scale.height * 0.07, "slots7_0").setScale(0.4);
+        const Twox = this.scene.add.sprite(gameConfig.scale.width * 0.82, gameConfig.scale.height * 0.07, "slots8_0").setScale(0.4);
+        const multipleSprite = this.scene.add.sprite(gameConfig.scale.width * 0.88, gameConfig.scale.height * 0.07, "multiple").setScale(0.8);
+        const doubleAdd = this.scene.add.sprite(gameConfig.scale.width * 0.7, gameConfig.scale.height * 0.16, "slots9_0").setScale(0.4);
+        const doubleAddAmountBg = this.scene.add.sprite(gameConfig.scale.width * 0.749, gameConfig.scale.height * 0.16, "AmountBg").setScale(0.7)
+        this.doubleDollarAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.749, gameConfig.scale.height * 0.16, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100).toString(), 27, "#ffffff");
+        const addSprite = this.scene.add.sprite(gameConfig.scale.width * 0.82, gameConfig.scale.height * 0.16, "slots10_0").setScale(0.4);
+        const addSpirteAmountBg =  this.scene.add.sprite(gameConfig.scale.width * 0.86, gameConfig.scale.height * 0.16, "AmountBg").setScale(0.7)
+        this.addDollar = new TextLabel(this.scene, gameConfig.scale.width * 0.86, gameConfig.scale.height * 0.16, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 10).toString(), 27)
+        const reSpin = this.scene.add.sprite(gameConfig.scale.width * 0.7, gameConfig.scale.height * 0.23, "slots11_0").setScale(0.4);
+        const getImage = this.scene.add.sprite(gameConfig.scale.width * 0.76, gameConfig.scale.height * 0.23, "getSprite").setScale(1.3)
+        const onToFive = this.scene.add.sprite(gameConfig.scale.width * 0.82, gameConfig.scale.height * 0.23, "oneToFive").setScale(0.7)
+        const reSpinText = this.scene.add.sprite(gameConfig.scale.width * 0.88, gameConfig.scale.height * 0.23, "respinSprite").setScale(1.3)
+        this.add([tenx, fivex, Twox, multipleSprite, doubleAddAmountBg, this.doubleDollarAmount, doubleAdd, addSpirteAmountBg, addSprite, reSpin, getImage, onToFive, reSpinText])
     }
 
     /**
@@ -147,12 +180,6 @@ export class UiContainer extends Phaser.GameObjects.Container {
             this.bnuttonMusic("buttonpressed");
             this.pBtn.setTexture('pBtnH');
             this.pBtn.disableInteractive();
-            let trippleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 500)
-            let doubleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100)
-            let singleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50)
-            this.trippleSevenAmount.updateLabelText(trippleAmount.toString())
-            this.doubleSevenAmount.updateLabelText(doubleAmount.toString());
-            this.singleSevenAmount.updateLabelText(singleAmount.toString());
             if (!currentGameData.isMoving) {
                 currentGameData.currentBetIndex++;
                 if (currentGameData.currentBetIndex >= initData.gameData.Bets.length) {
@@ -162,6 +189,24 @@ export class UiContainer extends Phaser.GameObjects.Container {
                 const updatedBetAmount = betAmount * 20;
                 this.CurrentLineText.updateLabelText(betAmount);
                 this.CurrentBetText.updateLabelText(updatedBetAmount.toString());
+                let trippleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 500)
+                let doubleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100)
+                let singleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50)
+                let mixedSevenamount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 10);
+                let mixedBarAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 4)
+                let anyAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 2)
+                let tirpleBar = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 20)
+                let trippleBarBar = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 30)
+                this.trippleSevenAmount.updateLabelText(trippleAmount.toString())
+                this.doubleSevenAmount.updateLabelText(doubleAmount.toString());
+                this.singleSevenAmount.updateLabelText(singleAmount.toString());
+                this.doubleDollarAmount.updateLabelText(doubleAmount.toString());
+                this.mixedSeven.updateLabelText(mixedSevenamount.toString())
+                this.mixedBar.updateLabelText(mixedBarAmount.toString());
+                this.addDollar.updateLabelText(mixedSevenamount.toString());
+                this.anyText.updateLabelText(anyAmount.toString());
+                this.barBarAmount.updateLabelText(trippleBarBar.toString());
+                this.barAmount.updateLabelText(tirpleBar.toString())
             }
             this.scene.time.delayedCall(200, () => {
                 this.pBtn.setTexture('pBtn');

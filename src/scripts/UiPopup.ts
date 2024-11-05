@@ -11,6 +11,7 @@ const Random = Phaser.Math.Between;
 
 export class UiPopups extends Phaser.GameObjects.Container {
     SoundManager: SoundManager;
+    
     UiContainer: UiContainer
     menuBtn!: InteractiveBtn;
     settingBtn!: InteractiveBtn;
@@ -22,18 +23,24 @@ export class UiPopups extends Phaser.GameObjects.Container {
     isOpen: boolean = false;
     isExitOpen: boolean = false;
     settingClose!: InteractiveBtn;
+    voulmneAdjust!: InteractiveBtn;
     onButton!: InteractiveBtn;
     offButton!:InteractiveBtn;
     toggleBar!: InteractiveBtn;
     soundEnabled: boolean = true; // Track sound state
     musicEnabled: boolean = true; // Track sound state
     normalButtonSound!: Phaser.Sound.BaseSound
+    private volumeOnTexture!: Phaser.Textures.Texture;
+    private volumeOffTexture!: Phaser.Textures.Texture;
     constructor(scene: Phaser.Scene, uiContainer: UiContainer, soundManager: SoundManager) {
         super(scene);
+        this.volumeOnTexture = this.scene.textures.get('volumneSpeaker');
+        this.volumeOffTexture = this.scene.textures.get('volumneSpeakerH');
         this.setPosition(0, 0);
         // this.ruleBtnInit();
-        this.settingBtnInit();
+        // this.settingBtnInit();
         this.infoBtnInit();
+        this.updateVolumeButton();
         this.menuBtnInit();
         this.exitButton();
         this.UiContainer = uiContainer
@@ -65,22 +72,28 @@ export class UiPopups extends Phaser.GameObjects.Container {
         this.exitBtn.setPosition(gameConfig.scale.width - this.exitBtn.width * 0.8, this.exitBtn.height * 0.5).setScale(0.7, 0.7)
         this.add(this.exitBtn)
     }
-    
-    settingBtnInit() {
-        const settingBtnSprites = [
-            this.scene.textures.get('settingBtn'),
-            this.scene.textures.get('settingBtnH')
-        ];
-        this.settingBtn = new InteractiveBtn(this.scene, settingBtnSprites, () => {
-            this.buttonMusic("buttonpressed")
-            this.openPopUp()
-            // setting Button
-            this.openSettingPopup();
-        }, 1, false); // Adjusted the position index
-        this.settingBtn.setPosition(gameConfig.scale.width/ 2 - this.settingBtn.width * 5, this.settingBtn.height * 0.7).setScale(0.8);
-        this.add(this.settingBtn);
-    }
 
+    private updateVolumeButton() {
+        // Remove the old volume button if it exists
+        if (this.voulmneAdjust) {
+            this.remove(this.voulmneAdjust, true); // Destroy the old button
+        }
+
+        const textures = currentGameData.soundMode ? 
+            [this.volumeOnTexture, this.volumeOffTexture] : 
+            [this.volumeOffTexture, this.volumeOnTexture];
+
+        this.voulmneAdjust = new InteractiveBtn(this.scene, textures, () => {
+            this.buttonMusic("buttonpressed");
+            this.openPopUp();
+            this.adjustSoundVolume();
+            this.updateVolumeButton(); // Update the button after toggling sound
+        }, 2, false);
+
+        this.voulmneAdjust.setPosition(gameConfig.scale.width/ 2 - this.voulmneAdjust.width * 5, this.voulmneAdjust.height * 0.7).setDepth(5).setScale(0.5);
+        this.add(this.voulmneAdjust);
+    }
+    
     infoBtnInit() {
         const infoBtnSprites = [
             this.scene.textures.get('infoBtn'),
@@ -102,11 +115,11 @@ export class UiPopups extends Phaser.GameObjects.Container {
         if (this.isOpen) {
             // this.tweenToPosition(this.rulesBtn, 3);
             this.tweenToPosition(this.infoBtn, 2);
-            this.tweenToPosition(this.settingBtn, 1);
+            this.tweenToPosition(this.voulmneAdjust, 1);
         } else {
             // this.tweenBack(this.rulesBtn);
             this.tweenBack(this.infoBtn);
-            this.tweenBack(this.settingBtn);
+            this.tweenBack(this.voulmneAdjust);
         }
     }
 
@@ -140,6 +153,12 @@ export class UiPopups extends Phaser.GameObjects.Container {
                 this.menuBtn.setInteractive(true);
             }
         });
+    }
+
+    // Function to adjust sound volume
+    adjustSoundVolume() {
+        currentGameData.soundMode = !currentGameData.soundMode; // Toggle sound mode
+        this.SoundManager.setSoundEnabled(currentGameData.soundMode);
     }
     /**
      * 
@@ -253,186 +272,221 @@ export class UiPopups extends Phaser.GameObjects.Container {
      */
 
         openInfoPopup() { 
-                const popupContainer = this.scene.add.container(0, 0).setDepth(11); 
-                const popupBackground = this.scene.add.sprite( gameConfig.scale.width / 2, gameConfig.scale.height / 2, "InfoPopupBg"); 
-                popupBackground.setDisplaySize(1920, 1080); 
-                popupContainer.add(popupBackground); 
-                // 3. Add a heading image to the popup container 
-                const headingImage = this.scene.add.image( gameConfig.scale.width / 2, gameConfig.scale.height / 2 - 400, 'headingImage' ); popupContainer.add(headingImage); 
-                // 4. Add a close button to the popup 
-                const closeButton = this.scene.add.sprite( gameConfig.scale.width / 2 + 800, gameConfig.scale.height / 2 - 400, 'exitButton' ).setInteractive(); 
-                closeButton.setScale(0.5); closeButton.on('pointerdown', () => { popupContainer.destroy(); 
-                    // Destroy the popup when the close button is clicked 
-                    scrollContainer.destroy(); 
-                    // Destroy the scroll container when the popup is closed
-                    }); 
-                    popupContainer.add(closeButton); 
-                    // 5. Create a mask to define the visible area for scrolling 
-                    const maskShape = this.scene.make.graphics().fillRect( 
-                        0, // Adjust X position to center 
-                        gameConfig.scale.height/2 - 300, // Adjust Y position 
-                        gameConfig.scale.width - 100, // Full width minus some padding 
-                        800 // Desired height of the scrollable area 
-                    ); 
-                    const mask = maskShape.createGeometryMask(); 
-                    // 6. Add the scrollable container to the popup container 
-                    const scrollContainer = this.scene.add.container(
-                        0, // Adjust X position to align with the mask
-                        gameConfig.scale.height / 2 - 300 // Adjust Y position
-                    );
-                    scrollContainer.setMask(mask); // Apply the mask to the scroll container 
-                    popupContainer.add(scrollContainer); 
-                    // console.log("initData", initData.UIData.symbols);
-                    
-                    // 7. Add the content that will be scrolled 
-                    const contentHeight = 3100; // Example content height, adjust as needed 
-                    // const content = this.scene.add.image( gameConfig.scale.width / 2, 100, 'minorSymbolsHeading' ).setOrigin(0.5).setDepth(2); 
-                    const content = this.scene.add.text(gameConfig.scale.width / 2, 100, "Minor Symbol",  { fontSize: '70px', color: '#920000', align: "Center",  stroke: "#920000", strokeThickness: 3, } ).setOrigin(0.5)
-                    const minSymbol1 = this.scene.add.image(350, 350, "slots0_0").setDepth(2).setScale(0.8) 
-                    const minSymbol2 = this.scene.add.image(850, 350, "slots1_0").setDepth(2).setScale(0.8) 
-                    const minSymbol3 = this.scene.add.image(1350, 350, "slots2_0").setDepth(2).setScale(0.8) 
-                    const minSymbol4 = this.scene.add.image(650, 550, "slots3_0").setDepth(2).setScale(0.8) 
-                    const minSymbol5 = this.scene.add.image(1050, 550, "slots4_0").setDepth(2).setScale(0.8) 
+            const inputOverlay = this.scene.add.rectangle(0, 0, this.scene.cameras.main.width, this.scene.cameras.main.height, 0x000000, 0.7)
+            .setOrigin(0, 0)
+            .setDepth(5)
+            .setInteractive();
 
+        inputOverlay.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+            pointer.event.stopPropagation();
+        });
+        const popupContainer = this.scene.add.container(0, 0).setDepth(11); 
+        const popupBackground = this.scene.add.sprite( gameConfig.scale.width / 2, gameConfig.scale.height / 2, "InfoPopupBg"); 
+        const contentHeading = this.scene.add.image( gameConfig.scale.width / 2, gameConfig.scale.height * 0.19, 'payRules' ).setScale(0.6);
+        popupContainer.add([popupBackground, contentHeading]); 
+        const maskShape = this.scene.make.graphics().fillRect( 
+                0, // Adjust X position to center 
+                gameConfig.scale.height/2 - 300, // Adjust Y position 
+                gameConfig.scale.width - 100, // Full width minus some padding 
+                600 // Desired height of the scrollable area 
+            ); 
+            const mask = maskShape.createGeometryMask(); 
+            // 6. Add the scrollable container to the popup container 
+            const scrollContainer = this.scene.add.container(
+                0, // Adjust X position to align with the mask
+                gameConfig.scale.height / 2 - 300 // Adjust Y position
+            );
+            scrollContainer.setMask(mask); // Apply the mask to the scroll container 
+            popupContainer.add(scrollContainer); 
+            // console.log("initData", initData.UIData.symbols);
+            
+            // 7. Add the content that will be scrolled 
+            const contentHeight = 2900; // Example content height, adjust as needed 
+            // const content = this.scene.add.image( gameConfig.scale.width / 2, 100, 'minorSymbolsHeading' ).setOrigin(0.5).setDepth(2); 
+            const content = this.scene.add.text( gameConfig.scale.width / 2, 20, 'SPECIAL REEL', { fontSize: '50px', color: '#ff8001', align: "center", fontFamily: "Arial", fontStyle: "Bold", } ).setOrigin(0.5)
+            const line1 = this.scene.add.text(gameConfig.scale.width * 0.25, 100, "The rightmost reel is a special reel, when the reels to its left makes a winning combination, you get extra bonuses based on the symbol of the special reel!",  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 1000, useAdvancedWrap: true }, } )
+            const firstSymbol = this.scene.add.image(gameConfig.scale.width * 0.3, 330, "infoFirstIcon" ).setOrigin(0.5).setScale(0.8)
+            const paragraphText = this.scene.add.text(gameConfig.scale.width * 0.38, 280, `All payout this round are multiplied by the corresponding multiplier`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: 'Arial',  wordWrap: { width: 770, useAdvancedWrap: true }})
+            const secondSymbol = this.scene.add.image(gameConfig.scale.width * 0.3, 520, "secondIcon").setOrigin(0.5).setScale(0.8)
+            const secondSymbolText = this.scene.add.text(gameConfig.scale.width * 0.38, 480,  `Win extra payout according to the player's bet amount`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: 'Arial',  wordWrap: { width: 770, useAdvancedWrap: true }})
+            const thirdSymbol = this.scene.add.image(gameConfig.scale.width * 0.3, 710, "slots11_0").setOrigin(0.5).setScale(0.8)
+            const thirdSymbolText = this.scene.add.text(gameConfig.scale.width * 0.38, 670, `Gain 3 to 5 respins randomly on the winning combination.`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: 'Arial',  wordWrap: { width: 770, useAdvancedWrap: true }})
+            const payTableHeading = this.scene.add.text(gameConfig.scale.width /2, 850, 'PAY TABLE', { fontSize: '50px', color: '#ff8001', align: "center", fontFamily: "Arial", fontStyle: "Bold", } ).setOrigin(0.5)
+            const symbolOne = this.scene.add.image(gameConfig.scale.width/2.2, 1040, "slots1_0").setScale(0.4)
+            const symbolOneText = this.scene.add.text(gameConfig.scale.width/2, 1010, `3X`, { fontSize: '40px', color: '#ff8001', align: "center", fontFamily: "Arial", })
+            const symbolOneTextAmount = this.scene.add.text(gameConfig.scale.width/1.88, 1010, ` 500`, { fontSize: '40px', color: '#ffffff', align: "center", fontFamily: "Arial" })
+            const symboleTwo = this.scene.add.image(gameConfig.scale.width * 0.33, 1150, 'slots2_0').setScale(0.4)
+            const symbolTwoText = this.scene.add.text(gameConfig.scale.width * 0.36, 1130, `3X`, {fontSize: "40px", color: '#ff8001', fontFamily:"Arial",})
+            const symbolTwoTextAmount = this.scene.add.text(gameConfig.scale.width * 0.4, 1130, `100`, {fontSize: "40px", color: '#ffffff', fontFamily:"Arial"})
+            const symbolThree = this.scene.add.image(gameConfig.scale.width * 0.62, 1150, "slots3_0").setScale(0.4)
+            const symbolThreeText = this.scene.add.text(gameConfig.scale.width * 0.65, 1130, `3X`, {fontSize: "40px", color: '#ff8001', fontFamily:"Arial", })
+            const symbolThreeTextAmount = this.scene.add.text(gameConfig.scale.width * 0.69, 1130, `50`, {fontSize: "40px", color: '#ffffff', fontFamily:"Arial", })
+            const symbolFour = this.scene.add.image(gameConfig.scale.width * 0.33, 1300, "slots4_0").setScale(0.4)
+            const symbolFourText =  this.scene.add.text(gameConfig.scale.width * 0.36, 1280, `3X`, {fontSize: "40px", color: '#ff8001', fontFamily:"Arial", })
+            const symbolFourTextAmount = this.scene.add.text(gameConfig.scale.width * 0.4, 1280, `30`, {fontSize: "40px", color: '#ffffff', fontFamily:"Arial", })
+            const symbolFive = this.scene.add.image(gameConfig.scale.width * 0.62, 1300, "slots5_0").setScale(0.4)
+            const symbolFiveText = this.scene.add.text(gameConfig.scale.width * 0.655, 1280, `3X`, {fontSize: "40px", color: '#ff8001', fontFamily:"Arial", })
+            const symbolFiveTextAmount = this.scene.add.text(gameConfig.scale.width * 0.695, 1280, `20`, {fontSize: "40px", color: '#ffffff', fontFamily:"Arial", })
+            const symbolSix = this.scene.add.image(gameConfig.scale.width/2, 1450, "differentSeven").setOrigin(0.5)
+            const symbolSixText = this.scene.add.text(gameConfig.scale.width/2.2, 1540, `Any`, {fontSize: "40px", color: '#ffffff',  fontFamily: "Arial", align:"Center"}).setOrigin(0.5);
+            const threex = this.scene.add.text(gameConfig.scale.width * 0.5, 1540, `3X`, {fontSize: "40px", color: '#ff8001', fontFamily:"Arial",  align:"Center"}).setOrigin(0.5);
+            const fiveHundredText = this.scene.add.text(gameConfig.scale.width * 0.54, 1540, `500`, {fontSize: "40px", color: '#ffffff', fontFamily:"Arial",  align:"Center"}).setOrigin(0.5);
+            const mixedBar = this.scene.add.image(gameConfig.scale.width/2, 1690, "differentBar").setOrigin(0.5)
+            const symbolSevenText = this.scene.add.text(gameConfig.scale.width/2.2, 1790, `Any`, {fontSize: "40px", color: '#ffffff',  fontFamily: "Arial", align:"Center"}).setOrigin(0.5);
+            const threexsecond = this.scene.add.text(gameConfig.scale.width * 0.5, 1790, `3X`, {fontSize: "40px", color: '#ff8001', fontFamily:"Arial",  align:"Center"}).setOrigin(0.5);
+            const thirtyText = this.scene.add.text(gameConfig.scale.width * 0.54, 1790, `30`, {fontSize: "40px", color: '#ffffff', fontFamily:"Arial",  align:"Center"}).setOrigin(0.5);
+            // const secondMixedBar = this.scene.add.image()
 
-                    const infoIcons = [
-                        { x: 470, y: 300 }, // Position for infoIcon2
-                        { x: 940, y: 300 }, // Position for infoIcon3
-                        { x: 1450, y: 300 }, //
-                        { x: 770, y: 500 }, //
-                        { x: 1170, y: 500 }, //
-                    ]
-                    const minorIcon = initData.UIData.symbols
-                    minorIcon.forEach((symbol, symbolIndex) => {
-                        // Get the corresponding infoIcon position
-                        const iconPosition = infoIcons[symbolIndex];
-                        if (!iconPosition) return; // Avoid undefined positions
-                        // Loop through each multiplier array (e.g., [100, 0], [50, 0])
-                        symbol.multiplier.slice(0, 4).forEach((multiplierValueArray, multiplierIndex) => {
-                            // Ensure multiplierValueArray is an array before accessing elements
-                            if (Array.isArray(multiplierValueArray)) {
-                                const multiplierValue = multiplierValueArray[0]; // Access the first value of the array
-                                if (multiplierValue > 0) {  // Only print if the value is greater than 0
-                                    // Determine the text (e.g., '5x', '4x', '2x')
-                                    const prefix = [5, 4, 2][multiplierIndex] || 1; // Customize this if needed
-                                    // Create the text content
-                                    const text = `${prefix}x ${multiplierValue}`;
-                                    // Create the text object
-                                    const textObject = this.scene.add.text(
-                                        iconPosition.x, // X position
-                                        iconPosition.y + multiplierIndex * 40, // Y position (spacing between lines)
-                                        text,
-                                        { fontSize: '30px', color: '#920000', align: "left" } // Customize text style
-                                    );
-                                    // Set line spacing and other styles
-                                    textObject.setLineSpacing(10);  // Adjust the line height as needed
-                                    textObject.setOrigin(0, 0.5); // Center the text if needed
-                                    scrollContainer.add(textObject);
-                                }
-                            }
-                        });
-                    });
-                    
-                    //Major Symbol
-                    const MajorSymBolHeading = this.scene.add.text(gameConfig.scale.width / 2, 800, "Major Symbol",  { fontSize: '70px', color: '#920000', align: "Center",  stroke: "#920000", strokeThickness: 3, } ).setOrigin(0.5)
-                    const majorSymbol1 = this.scene.add.image(350, 1100, "slots5_0").setDepth(2).setScale(0.8) 
-                    const majorSymbol2 = this.scene.add.image(850, 1100, "slots6_0").setDepth(2).setScale(0.8) 
-                    const majorSymbol3 = this.scene.add.image(1350, 1100, "slots7_0").setDepth(2).setScale(0.8) 
-                    const majorSymbol4 = this.scene.add.image(650, 1300, "slots8_0").setDepth(2).setScale(0.8) 
-                    const majorSymbol5 = this.scene.add.image(1050, 1300, "slots9_0").setDepth(2).setScale(0.8) 
-                    const majorSymbol1Text = this.scene.add.text(470, 1050, '5X - 200 \n4X - 100 \n3X - 60', { fontSize: '30px', color: '#920000', align: "left" } ) 
-                    const majorSymbol2Text = this.scene.add.text(950, 1050, '5X - 200 \n4X - 100 \n3X - 60', { fontSize: '30px', color: '#920000', align: "left" } ) 
-                    const majorSymbol3Text = this.scene.add.text(1450, 1050, '5X - 200 \n4X - 100 \n3X - 60', { fontSize: '30px', color: '#920000', align: "left" } ) 
-                    const majorSymbol4Text = this.scene.add.text(770, 1250, '5X - 200 \n4X - 100 \n3X - 60', { fontSize: '30px', color: '#920000', align: "left" } )
-                    const majorSymbol5Text = this.scene.add.text(1170, 1250, '5X - 200 \n4X - 100 \n3X - 60', { fontSize: '30px', color: '#920000', align: "left" } )
-                    const specialSymBol1 = this.scene.add.image(200, 1750, "slots10_0").setDepth(2).setOrigin(0.5).setScale(0.8)
-                    const specialSymBol2 = this.scene.add.image(200, 1950, "slots11_0").setDepth(2).setOrigin(0.5).setScale(0.8)
-                    const specialSymBol3 = this.scene.add.image(200, 2150, "slots12_0").setDepth(2).setOrigin(0.5).setScale(0.8)
-                    const specialSymBol4 = this.scene.add.image(200, 2350, "slots13_0").setDepth(2).setOrigin(0.5).setScale(0.8)
-                    const specialSymBol5 = this.scene.add.image(200, 2550, "slots14_0").setDepth(2).setOrigin(0.5).setScale(0.8)
+            scrollContainer.add([content, line1, firstSymbol, paragraphText, secondSymbol, secondSymbolText, thirdSymbol, thirdSymbolText, payTableHeading, symbolOne, symbolOneText, symbolOneTextAmount, symboleTwo, symbolTwoText, symbolTwoTextAmount, symbolThree, symbolThreeText, symbolThreeTextAmount, symbolFour, symbolFourText, symbolFourTextAmount, symbolFive, symbolFiveText, symbolFiveTextAmount,
+                symbolSix, symbolSixText, threex, fiveHundredText, mixedBar, symbolSevenText, threexsecond, thirtyText
+            ]); 
+            // 8. Scrollbar background 
+            const scrollbarBg = this.scene.add.sprite( gameConfig.scale.width/1.28, // Positioned on the right side 
+                gameConfig.scale.height / 1.9, 'scrollerViewBg' ).setOrigin(0.5).setDisplaySize(15, 600); // Adjust height as needed 
+            popupContainer.add(scrollbarBg); 
+            // 9. Roller image for the scrollbar 
+            const roller = this.scene.add.image( gameConfig.scale.width/1.28, gameConfig.scale.height / 2 - 150, 'scrollerView' ).setOrigin(0.5).setInteractive({ draggable: true }); 
+            popupContainer.add(roller); 
 
-                    //Special Symbol
-                    const specialSymBolHeading = this.scene.add.text(gameConfig.scale.width / 2, 1550, "Special Symbol",  { fontSize: '70px', color: '#920000', align: "Center",  stroke: "#920000", strokeThickness: 3, } ).setOrigin(0.5)
-                    const descriptionPos = [ 
-                        {x: 350, y: 1700},
-                        {x: 350, y: 1900},
-                        {x: 350, y: 2100},
-                        {x: 350, y: 2300},
-                        {x: 350, y: 2500},
-                    ]
-                    for (let i = 10; i <= 14; i++) {
-                        const symbol = initData.UIData.symbols[i];
-                        if (symbol) {
-                            const position = descriptionPos[i - 10];
-                            const descriptionText = `${symbol.description}`;
-                            // Create the text object
-                           const descriptionObject = this.scene.add.text(
-                                    position.x, // X position
-                                    position.y +  40, // Y position (spacing between lines)
-                                    descriptionText,
-                                 { fontSize: '30px', color: '#920000', align: "left",  wordWrap: { width: 1200, useAdvancedWrap: true }} // Customize text style
-                            );
-                            descriptionObject.setLineSpacing(10);  // Adjust the line height as needed
-                            descriptionObject.setOrigin(0, 0.5); // Center the text if needed
-                            scrollContainer.add(descriptionObject)
-                        } else {
-                        }
-                    }
+            const closeButton = this.scene.add.sprite(gameConfig.scale.width * 0.25, gameConfig.scale.height / 2 - 330, 'exitButton').setInteractive(); // Adjust y-position as needed
+            closeButton.setScale(0.7)    
+            closeButton.on('pointerdown', () => {
+                    inputOverlay.destroy();
+                    scrollContainer.destroy();  
+                    popupContainer.destroy(); // Now destroys everything correctly
+                });
+                popupContainer.add(closeButton); 
+                        // 10. Add drag event listener to the roller 
+            this.scene.input.setDraggable(roller); 
+            roller.on('drag', (pointer: any, dragX: number, dragY: number) => {
+                // Keep the roller within the scrollbar bounds
+                const minY = scrollbarBg.getTopCenter().y + roller.height / 2;
+                const maxY = scrollbarBg.getBottomCenter().y - roller.height / 2;
+                // Clamp roller position
+                dragY = Phaser.Math.Clamp(dragY, minY, maxY);
+                roller.y = dragY;
+                // Calculate the scroll percentage (0 to 1)
+                const scrollPercent = (dragY - minY) / (maxY - minY);
+                // Map the scroll percentage to the content's Y position range
+                const contentMaxY = 300; // The top position of content (relative to mask)
+                const contentMinY = -(contentHeight - 600); // The bottom position of content relative to mask
+                // Update scroll container's Y position based on scroll percentage
+                scrollContainer.y = Phaser.Math.Interpolation.Linear([contentMaxY, contentMinY], scrollPercent);
+            });
 
-                    const payLineHeading = this.scene.add.text(gameConfig.scale.width / 2, 2700, "PayLines",  { fontSize: '70px', color: '#920000', align: "Center",  stroke: "#920000", strokeThickness: 3, } ).setOrigin(0.5)
-                    const payLines = this.scene.add.image( gameConfig.scale.width / 2, 3000, 'payLinesImage' ).setScale(0.9); 
-                    // const MajorSymBolHeading = this.scene.add.image( gameConfig.scale.width / 2, 800, 'majorSymbolHeading' ).setOrigin(0.5).setDepth(2);
-                    
-                    scrollContainer.add([content,minSymbol1, minSymbol2, 
-                        minSymbol3, minSymbol4, minSymbol5, 
-                        MajorSymBolHeading, majorSymbol1, majorSymbol1Text, majorSymbol2, majorSymbol2Text, 
-                        majorSymbol3, majorSymbol3Text, majorSymbol4, majorSymbol5, majorSymbol4Text, majorSymbol5Text, specialSymBolHeading, specialSymBol1, specialSymBol2, specialSymBol3, specialSymBol4, specialSymBol5, payLineHeading, payLines
-                    ]); 
-                    // 8. Scrollbar background 
-                    const scrollbarBg = this.scene.add.sprite( gameConfig.scale.width - 40, // Positioned on the right side 
-                        gameConfig.scale.height / 2, 'scrollBg' ).setOrigin(0.5).setDisplaySize(50, 600); // Adjust height as needed 
-                    popupContainer.add(scrollbarBg); 
-                    // 9. Roller image for the scrollbar 
-                    const roller = this.scene.add.image( gameConfig.scale.width - 40, gameConfig.scale.height / 2 - 200, 'scroller' ).setOrigin(0.5).setInteractive({ draggable: true }); 
-                    popupContainer.add(roller); 
-                    // 10. Add drag event listener to the roller 
-                    this.scene.input.setDraggable(roller); 
-                    roller.on('drag', (pointer: any, dragX: number, dragY: number) => {
-                        // Keep the roller within the scrollbar bounds
-                        const minY = scrollbarBg.getTopCenter().y + roller.height / 2;
-                        const maxY = scrollbarBg.getBottomCenter().y - roller.height / 2;
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+        
+            // Make the scroll container interactive
+            scrollContainer.setInteractive(new Phaser.Geom.Rectangle(
+                0,
+                0,
+                gameConfig.scale.width - 100, // Width of the scrollable area
+                2900 // Height of the scrollable area
+            ), Phaser.Geom.Rectangle.Contains);
+        
+            // Touch start
+            scrollContainer.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+                console.log("touc 2");
+                isDragging = true;
+                startY = pointer.y;
+                currentY = scrollContainer.y;
+            });
+        
+            // Touch move
+            this.scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+                if (!isDragging) return;
+                const deltaY = pointer.y - startY;
+                const newY = currentY + deltaY;
+                // console.log(deltaY, newY, startY, pointer.y);
+                // Calculate bounds
+                const maxY = 300; // Top bound
+                const minY = -(contentHeight - 600); // Bottom bound
+        
+                // Clamp the scroll position
+                scrollContainer.y = Phaser.Math.Clamp(newY, minY, maxY);
+        
+                // Update roller position
+                const scrollPercent = (maxY - scrollContainer.y) / (maxY - minY);
+                const rollerMinY = scrollbarBg.getTopCenter().y + roller.height / 2;
+                const rollerMaxY = scrollbarBg.getBottomCenter().y - roller.height / 2;
+                roller.y = Phaser.Math.Linear(rollerMinY, rollerMaxY, scrollPercent);
+            });
+        
+            // Touch end
+            this.scene.input.on('pointerup', () => {
+                isDragging = false;
+            });
+        
+            // Mouse wheel support for desktop
+            this.scene.input.on('wheel', (pointer: any, gameObjects: any, deltaX: number, deltaY: number) => {
+                const currentY = scrollContainer.y;
+                const newY = currentY - deltaY;
                 
-                        // Clamp roller position
-                        dragY = Phaser.Math.Clamp(dragY, minY, maxY);
-                        roller.y = dragY;
-                
-                        // Calculate the scroll percentage (0 to 1)
-                        const scrollPercent = (dragY - minY) / (maxY - minY);
-                
-                        // Map the scroll percentage to the content's Y position range
-                        const contentMaxY = 300; // The top position of content (relative to mask)
-                        const contentMinY = -(contentHeight - 600); // The bottom position of content relative to mask
-                
-                        // Update scroll container's Y position based on scroll percentage
-                        scrollContainer.y = Phaser.Math.Interpolation.Linear([contentMaxY, contentMinY], scrollPercent);
-                    });
-
-                    this.scene.input.on('wheel', (pointer: any, gameObjects: any, deltaX: number, deltaY: number) => {
-                        const minY = scrollbarBg.getTopCenter().y + roller.height / 2;
-                        const maxY = scrollbarBg.getBottomCenter().y - roller.height / 2;
-                
-                        // Adjust roller Y position based on mouse wheel movement
-                        let newY = roller.y + deltaY * 0.1; // Adjust speed of scroll
+                // Calculate bounds
+                const maxY = 300; // Top bound
+                const minY = -(contentHeight - 600); // Bottom bound
+        
+                // Clamp the scroll position
+                scrollContainer.y = Phaser.Math.Clamp(newY, minY, maxY);
+        
+                // Update roller position
+                const scrollPercent = (maxY - scrollContainer.y) / (maxY - minY);
+                const rollerMinY = scrollbarBg.getTopCenter().y + roller.height / 2;
+                const rollerMaxY = scrollbarBg.getBottomCenter().y - roller.height / 2;
+                roller.y = Phaser.Math.Linear(rollerMinY, rollerMaxY, scrollPercent);
+            });
+        
+            // Prevent default touch behavior
+            // this.scene.input.on('gameobjectdown', (pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject) => {
+            //     pointer.event.preventDefault();
+            // });
+        
+            // Optional: Add momentum scrolling
+            let velocity = 0;
+            let lastY = 0;
+            let lastTime = 0;
+        
+            this.scene.time.addEvent({
+                delay: 16,
+                callback: () => {
+                    if (!isDragging && Math.abs(velocity) > 0.1) {
+                        const now = Date.now();
+                        const deltaTime = now - lastTime;
+                        lastTime = now;
+        
+                        const maxY = 300;
+                        const minY = -(contentHeight - 600);
+                        let newY = scrollContainer.y + velocity * deltaTime;
                         newY = Phaser.Math.Clamp(newY, minY, maxY);
-                        roller.y = newY;
-                        // Calculate the scroll percentage (0 to 1)
-                        const scrollPercent = (newY - minY) / (maxY - minY);
-                        // Map the scroll percentage to the content's Y position range
-                        const contentMaxY = 300; // The top position of content (relative to mask)
-                        const contentMinY = -(contentHeight - 600); // The bottom position of content relative to mask
-                        // Update scroll container's Y position based on scroll percentage
-                        scrollContainer.y = Phaser.Math.Interpolation.Linear([contentMaxY, contentMinY], scrollPercent);
-                    });
+                        
+                        scrollContainer.y = newY;
+                        velocity *= 0.95; // Apply friction
+        
+                        // Update roller position
+                        const scrollPercent = (maxY - scrollContainer.y) / (maxY - minY);
+                        const rollerMinY = scrollbarBg.getTopCenter().y + roller.height / 2;
+                        const rollerMaxY = scrollbarBg.getBottomCenter().y - roller.height / 2;
+                        roller.y = Phaser.Math.Linear(rollerMinY, rollerMaxY, scrollPercent);
+                    }
+                },
+                loop: true
+            });
+        
+            // Update velocity on pointer move
+            this.scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+                // console.log("touc 5");
+                if (isDragging) {
+                    const now = Date.now();
+                    const deltaTime = now - lastTime;
+                    if (deltaTime > 0) {
+                        velocity = (pointer.y - lastY) / deltaTime;
+                    }
+                    lastY = pointer.y;
+                    lastTime = now;
+                }
+            });
         }
 
         parseText(text: string): { text: string, color: string }[] {
