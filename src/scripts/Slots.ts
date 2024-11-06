@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Globals, ResultData, initData } from "./Globals";
+import { Globals, ResultData, currentGameData, initData } from "./Globals";
 import { gameConfig } from './appconfig';
 import { UiContainer } from './UiContainer';
 import { Easing, Tween } from "@tweenjs/tween.js"; // If using TWEEN for animations
@@ -27,6 +27,7 @@ export class Slots extends Phaser.GameObjects.Container {
     constructor(scene: Phaser.Scene, uiContainer: UiContainer, callback: () => void, SoundManager : SoundManager) {
         super(scene);
         this.resultCallBack = callback;
+        const totalReels = 4;
         this.uiContainer = uiContainer;
         this.SoundManager = SoundManager
         this.slotMask = new Phaser.GameObjects.Graphics(scene);
@@ -40,7 +41,6 @@ export class Slots extends Phaser.GameObjects.Container {
             gameConfig.scale.width / 6.5,
             gameConfig.scale.height / 3.4
         );
-        // this.add(this.slotMask);
         // Filter and pick symbol keys based on the criteria
         this.symbolKeys = this.getFilteredSymbolKeys();
         
@@ -49,29 +49,54 @@ export class Slots extends Phaser.GameObjects.Container {
         this.symbolWidth = exampleSymbol.displayWidth/ 4;
         this.symbolHeight = exampleSymbol.displayHeight/4;
         this.spacingX = 345; // Add some spacing
-        this.spacingY = 250; // Add some spacing
+        this.spacingY = 260; // Add some spacing
         const startPos = {
             x: gameConfig.scale.width / 4.2,
             y: gameConfig.scale.height / 2.5 
         };
+
+         // Create separate mask for 4th reel
+         const fourthReelMask = new Phaser.GameObjects.Graphics(scene);
+         const fourthReelMaskHeight = 360; // Adjust this value as needed
+         fourthReelMask.fillStyle(0xffffff, 1);
+         fourthReelMask.fillRoundedRect(0, 0, this.maskWidth / 4, fourthReelMaskHeight, 20);
+         fourthReelMask.setPosition(
+             gameConfig.scale.width / 6.5 + (this.spacingX * 3), // Adjust position for 4th reel
+             gameConfig.scale.height * 0.348
+         );
+
         const totalSymbol = 7;
         const visibleSymbol = 3;
         const startIndex = 1;
         const initialYOffset = (totalSymbol - startIndex - visibleSymbol) * this.spacingY;
-        for (let i = 0; i < 3; i++) { // 5 columns
+        for (let i = 0; i < totalReels; i++) { // 5 columns
             const reelContainer = new Phaser.GameObjects.Container(scene);
             this.reelContainers.push(reelContainer); // Store the container for future use
             
             this.slotSymbols[i] = [];
-            for (let j = 0; j < 28; j++) {
+            for (let j = 0; j < 64; j++) {
                 let symbolKey = this.getRandomSymbolKey(); // Get a random symbol key
                 let slot = new Symbols(scene, symbolKey, { x: i, y: j }, reelContainer);
-                slot.symbol.setMask(new Phaser.Display.Masks.GeometryMask(scene, this.slotMask));
-                slot.symbol.setPosition(
-                    startPos.x + i * this.spacingX,
-                    startPos.y + j * this.spacingY
-                );
-                slot.symbol.setScale(0.9, 0.9)
+                let symbolScale 
+                if(i == 3){
+                    slot.symbol.setMask(new Phaser.Display.Masks.GeometryMask(scene, fourthReelMask));
+                    this.spacingX = 360;
+                    this.spacingY = 220;
+                    symbolScale = 0.75;
+                    slot.symbol.setPosition(
+                        startPos.x + i * this.spacingX,
+                        startPos.y + j * this.spacingY + 20
+                    ); 
+                }else{
+                    slot.symbol.setMask(new Phaser.Display.Masks.GeometryMask(scene, this.slotMask));
+                    symbolScale = 0.9
+                    slot.symbol.setPosition(
+                        startPos.x + i * this.spacingX,
+                        startPos.y + j * this.spacingY
+                    );
+                }
+                
+                slot.symbol.setScale(symbolScale)
                 slot.startX = slot.symbol.x;
                 slot.startY = slot.symbol.y;
                 this.slotSymbols[i].push(slot);                
@@ -121,7 +146,7 @@ export class Slots extends Phaser.GameObjects.Container {
             for (let j = 0; j < this.reelContainers[i].list.length; j++) {
                 setTimeout(() => {
                     this.slotSymbols[i][j].startMoving = true;
-                    if (j < 3) this.slotSymbols[i][j].stopAnimation();
+                    if (j < 4) this.slotSymbols[i][j].stopAnimation();
                 }, 100 * i);
             }
         }
@@ -138,7 +163,6 @@ export class Slots extends Phaser.GameObjects.Container {
             callback: this.showDisconnectionScene,
             callbackScope: this // Important for the 'this' context
         });
-        this.uiContainer.maxbetBtn.disableInteractive();
     }
 
 
@@ -147,7 +171,7 @@ export class Slots extends Phaser.GameObjects.Container {
             this.reelTweens[reelIndex].stop(); 
         }
         const reel = this.reelContainers[reelIndex];
-        const spinDistance = this.spacingY * 10; // Adjust this value for desired spin amount 
+        const spinDistance = currentGameData.turboMode ? (this.spacingY * 13) : this.spacingY * 10; // Adjust this value for desired spin speed 
         // reel.y -= 1;
         this.reelTweens[reelIndex] = this.scene.tweens.add({
             targets: reel,
@@ -161,16 +185,25 @@ export class Slots extends Phaser.GameObjects.Container {
     stopReel(reelIndex: number) {
         const reel = this.reelContainers[reelIndex];
         const reelDelay = 300 * (reelIndex + 1);
-        const targetSymbolIndex = 0; // Example: Align the first symbol
-        const targetY = -targetSymbolIndex * this.symbolHeight; 
+        // Get the middle row value for this reel
+        const middleRowValue = ResultData.gameData.resultSymbols[1][reelIndex];
+        let targetY = 0; // default position
+        // Only change position if this reel has non-zero value in middle row
+        if (middleRowValue !== 0) {
+            if (reelIndex === 3) {
+                targetY = -100; // Specific spacing for fourth reel
+            } else {
+                targetY = -120; // Regular spacing for other reels
+            }
+        }
         this.scene.tweens.add({
             targets: reel,
-            y: targetY, // Animate relative to the current position
+            y: targetY,
             duration: 800,
             ease: 'Cubic.easeOut',
             onComplete: () => {
                 if (this.reelTweens[reelIndex]) {
-                    this.reelTweens[reelIndex].stop(); 
+                    this.reelTweens[reelIndex].stop();
                 }
                 if (reelIndex === this.reelContainers.length - 1) {
                     this.playWinAnimations();
@@ -179,14 +212,15 @@ export class Slots extends Phaser.GameObjects.Container {
             },
             delay: reelDelay
         });
-
-        if (this.connectionTimeout) { 
+    
+        if (this.connectionTimeout) {
             this.connectionTimeout.remove(false);
         }
+        
         for (let j = 0; j < this.slotSymbols[reelIndex].length; j++) {
             this.slotSymbols[reelIndex][j].endTween();
-         }
-    } 
+        }
+    }
 
     showDisconnectionScene(){
         Globals.SceneHandler?.addScene("Disconnection", Disconnection, true)
@@ -209,18 +243,54 @@ export class Slots extends Phaser.GameObjects.Container {
     // Function to play win animations
     playWinAnimations() {
         this.resultCallBack(); // Call the result callback
-        ResultData.gameData.symbolsToEmit.forEach((rowArray: any) => {
-            rowArray.forEach((row: any) => {
-                if (typeof row === "string") {
-                    const [y, x]: number[] = row.split(",").map((value) => parseInt(value));
-                    const animationId = `symbol_anim_${ResultData.gameData.ResultReel[x][y]}`;
-                    if (this.slotSymbols[y] && this.slotSymbols[y][x]) {
+                let y = 0;
+                const row = ResultData.gameData.resultSymbols[1];
+             
+                
+                for (let x = 0; x < row.length; x++) {
+                    const elementId = row[x];
+                    if (elementId !== '0') {
+                        if (this.slotSymbols[y] && this.slotSymbols[y][x]) {
+                            // this.playSymbolAnimation(x, y, elementId);
+                        }
+                        // Play win sound for each non-zero symbol
                         this.winMusic("winMusic");
-                        this.slotSymbols[y][x].playAnimation(animationId);
+                    } else {
+                        // console.log(`Skipping animation for symbol at (${y}, ${x})`);
                     }
                 }
-            });
-        });
+    }
+
+    playSymbolAnimation(y: number, x: number, elementId: string) {
+        const symbol = this.slotSymbols[y][x];
+        // const animationId = `symbol_anim_${elementId}`;
+        const animationId = `symbol_anim_${elementId}`;
+         // Remove existing animation if it exists
+        if (this.scene.anims.exists(animationId)) {
+            this.scene.anims.remove(animationId);
+        }
+        if (!this.scene.anims.exists(animationId)) {
+            let textureKeys: string[] = [];
+            for (let i = 0; i < 24; i++) {
+                const textureKey = `slots${elementId}_${i}`; // Use animationColor here
+                if (this.scene.textures.exists(textureKey)) {
+                    textureKeys.push(textureKey);
+                }
+            }
+            if (textureKeys.length > 0) {
+                this.scene.anims.create({
+                    key: animationId,
+                    frames: textureKeys.map(key => ({ key })),
+                    frameRate: 20,
+                    repeat: -1
+                });
+            }
+        }
+
+        if (this.scene.anims.exists(animationId)) {
+            symbol.playAnimation(animationId);
+        } else {
+        }
     }
     // winMusic
     winMusic(key: string){
@@ -288,12 +358,11 @@ class Symbols {
     }
 
     endTween() {
-       
         if (this.index.y < 3) {
             let textureKeys: string[] = [];
             // Retrieve the elementId based on index
-            const elementId = ResultData.gameData.ResultReel[this.index.y][this.index.x];
-                for (let i = 0; i < 15; i++) {
+            const elementId = ResultData.gameData.resultSymbols[this.index.y][this.index.x];
+                for (let i = 0; i < 24; i++) {
                     const textureKey = `slots${elementId}_${i}`;
                     // Check if the texture exists in cache
                     if (this.scene.textures.exists(textureKey)) {

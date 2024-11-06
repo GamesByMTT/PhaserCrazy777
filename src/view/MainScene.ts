@@ -39,6 +39,7 @@ export default class MainScene extends Scene {
     logo!: Phaser.GameObjects.Sprite
     WheelawardText!: Phaser.GameObjects.Sprite
     private mainContainer!: Phaser.GameObjects.Container;
+    private winningLine: Phaser.GameObjects.Sprite | null = null;
 
     constructor() {
         super({ key: 'MainScene' });
@@ -82,10 +83,10 @@ export default class MainScene extends Scene {
             repeat: -1 // Play only once
         });
         this.triangleanim1 = new Phaser.GameObjects.Sprite(this, width/1.37, height/3.25, "Trainagle0").setScale(0.8);
-        this.triangleanim2 = new Phaser.GameObjects.Sprite(this, width/1.25, height/3.25, "Trainagle0").setScale(0.8);
+        this.triangleanim2 = new Phaser.GameObjects.Sprite(this, width/1.245, height/3.25, "Trainagle0").setScale(0.8);
         this.triangleanim3 = new Phaser.GameObjects.Sprite(this, width/1.14, height/3.25, "Trainagle0").setScale(0.8);
         this.triangleanim4 = new Phaser.GameObjects.Sprite(this, width/1.37, height/1.395, "Trainagle0").setScale(0.8).setAngle(180);
-        this.triangleanim5 = new Phaser.GameObjects.Sprite(this, width/1.25, height/1.395, "Trainagle0").setScale(0.8).setAngle(180);
+        this.triangleanim5 = new Phaser.GameObjects.Sprite(this, width/1.245, height/1.395, "Trainagle0").setScale(0.8).setAngle(180);
         this.triangleanim6 = new Phaser.GameObjects.Sprite(this, width/1.14, height/1.395, "Trainagle0").setScale(0.8).setAngle(180);
         this.triangleanim1.play("Traingle")
         this.triangleanim2.play("Traingle")
@@ -94,18 +95,20 @@ export default class MainScene extends Scene {
         this.triangleanim5.play("Traingle")
         this.triangleanim6.play("Traingle")
 
-        this.mainContainer.add([this.logo, this.reelBg, this.SmallBoxxReel,this.ReelFrame, this.seconOuterFrame,  this.redBox, this.redSmallBox, this.fristFrameBg, this.WheelawardText, this.goldenBar, this.smallBoxx, this.triangleanim1, this.triangleanim2, this.triangleanim3, this.triangleanim4, this.triangleanim5, this.triangleanim6, this.centerLine])
+        this.mainContainer.add([this.logo, this.reelBg, this.SmallBoxxReel,this.ReelFrame, this.seconOuterFrame,  this.redBox, this.redSmallBox, this.fristFrameBg, this.WheelawardText, this.goldenBar, this.smallBoxx, this.triangleanim1, this.triangleanim2, this.triangleanim3, this.triangleanim4, this.triangleanim5, this.triangleanim6])
         this.soundManager.playSound("backgroundMusic")
 
         // Initialize UI Container
         this.uiContainer = new UiContainer(this, () => this.onSpinCallBack(), this.soundManager);
         // // Initialize Slots
         this.slot = new Slots(this, this.uiContainer,() => this.onResultCallBack(), this.soundManager);
-
         // Initialize UI Popups
         this.uiPopups = new UiPopups(this, this.uiContainer, this.soundManager);
 
         this.mainContainer.add([this.slot, this.uiContainer, this.uiPopups]);
+
+        this.centerLine = new Phaser.GameObjects.Sprite(this, width/1.9, height/1.9, "centerLine").setScale(0.8)
+        this,this.mainContainer.add(this.centerLine)
 
         this.setupFocusBlurEvents()
     }
@@ -132,7 +135,12 @@ export default class MainScene extends Scene {
         const onSpinMusic = "onSpin"
         this.soundManager.playSound(onSpinMusic)
         this.slot.moveReel();
-        // this.lineGenerator.hideLines();
+        console.log("SpinCall");
+        
+        if(this.winningLine?.active){
+            this.winningLine.stop();
+            this.winningLine.destroy();
+        }
     }
 
     onAutoSpinStop(){
@@ -149,20 +157,20 @@ export default class MainScene extends Scene {
     recievedMessage(msgType: string, msgParams: any) {
         if (msgType === 'ResultData') {
             this.time.delayedCall(3500, () => {    
-                if (ResultData.gameData.isBonus) {
-                    if(this.uiContainer.isAutoSpinning){
-                        this.uiContainer.autoBetBtn.emit('pointerdown'); 
-                        this.uiContainer.autoBetBtn.emit('pointerup');
+                this.time.delayedCall(2000, () => {
+                    if(ResultData.playerData.currentWining > 0){
+                        console.log("have won animation run")
+                        this.playwinningArrowAnimation();
                     }
-                    Globals.SceneHandler?.addScene('BonusScene', BonusScene, true)
-                }         
-                this.uiContainer.currentWiningText.updateLabelText(ResultData.playerData.currentWining.toFixed(2));
+                }, [], this);   
+                this.uiContainer.currentWiningText.setText(ResultData.playerData.currentWining.toFixed(2));
                 currentGameData.currentBalance = ResultData.playerData.Balance;
                 let betValue = (initData.gameData.Bets[currentGameData.currentBetIndex]) * 20
                 let jackpot = ResultData.gameData.jackpot
-                let winAmount = ResultData.gameData.WinAmout;   
-                this.uiContainer.currentBalanceText.updateLabelText(currentGameData.currentBalance.toFixed(2));
-                const freeSpinCount = ResultData.gameData.freeSpins.count;
+                let winAmount = ResultData.gameData.WinAmout;  
+                let newBalance = currentGameData.currentBalance 
+                this.uiContainer.currentBalanceText.setText(newBalance.toString());
+                const freeSpinCount = ResultData.gameData.freeSpinCount;
                 // Check if freeSpinCount is greater than 1
                 if (freeSpinCount >=1) {
                     this.freeSpinPopup(freeSpinCount, 'freeSpinPopup')
@@ -258,7 +266,6 @@ export default class MainScene extends Scene {
         });
     }
 
-
     /**
      * @method showWinPopup
      * @description Displays a popup showing the win amount with an increment animation and different sprites
@@ -310,6 +317,29 @@ export default class MainScene extends Scene {
         });
     }
 
+    // Winning Animatiom over Symbol lineGlow
+    playwinningArrowAnimation() {
+        const respinFrames: Phaser.Types.Animations.AnimationFrame[] = [];
+        for (let i = 0; i < 24; i++) {
+            respinFrames.push({ key: `lineBar${i}` });
+        }
+        this.anims.create({
+            key: 'winningLineAnimation',
+            frames: respinFrames,
+            frameRate: 24, // Adjust as needed
+            repeat: -1 // Play only once
+        });
+        this.winningLine = this.add.sprite(
+            this.cameras.main.width / 1.9,
+            this.cameras.main.height / 1.9,
+            `lineBar0` // Initial frame
+        ).setDepth(15).setScale(0.8); // Ensure it's on top
+        this.winningLine.play('winningLineAnimation');
+
+        console.log(this.winningLine);
+        
+    }
+
     private setupFocusBlurEvents() {
         window.addEventListener('blur', () => {
                 this.soundManager.stopSound('backgroundMusic');
@@ -321,6 +351,4 @@ export default class MainScene extends Scene {
             }
         });
     }
-
-   
 }

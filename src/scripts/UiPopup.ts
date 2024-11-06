@@ -1,9 +1,7 @@
 import Phaser from "phaser";
 import { currentGameData, Globals, initData, TextStyle } from "./Globals";
 import { gameConfig } from "./appconfig";
-import { TextLabel } from "./TextLabel";
 import { UiContainer } from "./UiContainer";
-import MainLoader from "../view/MainLoader";
 import SoundManager from "./SoundManager";
 import RexUIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin.js';
 
@@ -57,7 +55,7 @@ export class UiPopups extends Phaser.GameObjects.Container {
             this.buttonMusic("buttonpressed")
             this.openPopUp();
         }, 0, true);
-        this.menuBtn.setPosition( gameConfig.scale.width * 0.065, gameConfig.scale.height * 0.88 ).setScale(0.8);
+        this.menuBtn.setPosition( gameConfig.scale.width * 0.065, gameConfig.scale.height * 0.9 ).setScale(0.9);
         this.add(this.menuBtn);
     }
     exitButton(){
@@ -69,7 +67,7 @@ export class UiPopups extends Phaser.GameObjects.Container {
                 this.buttonMusic("buttonpressed")
                 this.openLogoutPopup();
         }, 0, true, );
-        this.exitBtn.setPosition(gameConfig.scale.width - this.exitBtn.width * 0.8, this.exitBtn.height * 0.5).setScale(0.7, 0.7)
+        this.exitBtn.setPosition(90, 40).setScale(0.5).setOrigin(0.5)
         this.add(this.exitBtn)
     }
 
@@ -78,11 +76,9 @@ export class UiPopups extends Phaser.GameObjects.Container {
         if (this.voulmneAdjust) {
             this.remove(this.voulmneAdjust, true); // Destroy the old button
         }
-
         const textures = currentGameData.soundMode ? 
             [this.volumeOnTexture, this.volumeOffTexture] : 
             [this.volumeOffTexture, this.volumeOnTexture];
-
         this.voulmneAdjust = new InteractiveBtn(this.scene, textures, () => {
             this.buttonMusic("buttonpressed");
             this.openPopUp();
@@ -90,7 +86,7 @@ export class UiPopups extends Phaser.GameObjects.Container {
             this.updateVolumeButton(); // Update the button after toggling sound
         }, 2, false);
 
-        this.voulmneAdjust.setPosition(gameConfig.scale.width/ 2 - this.voulmneAdjust.width * 5, this.voulmneAdjust.height * 0.7).setDepth(5).setScale(0.5);
+        this.voulmneAdjust.setPosition(gameConfig.scale.width/ 2 - this.voulmneAdjust.width * 5, this.voulmneAdjust.height * 0.7).setDepth(5).setScale(0.8);
         this.add(this.voulmneAdjust);
     }
     
@@ -102,6 +98,7 @@ export class UiPopups extends Phaser.GameObjects.Container {
         this.infoBtn = new InteractiveBtn(this.scene, infoBtnSprites, () => {
             // info button 
             this.buttonMusic("buttonpressed")
+            this.openPopUp();
             this.openInfoPopup();
         }, 2, false); // Adjusted the position index
         this.infoBtn.setPosition(gameConfig.scale.width/ 2 - this.infoBtn.width * 5, this.infoBtn.height * 0.7).setScale(0.8);
@@ -124,7 +121,7 @@ export class UiPopups extends Phaser.GameObjects.Container {
     }
 
     tweenToPosition(button: InteractiveBtn, index: number) {
-        const targetY =  this.menuBtn.y - (index * (this.menuBtn.height))
+        const targetY =  this.menuBtn.y - (index * (this.menuBtn.height + 25))
        // Calculate the Y position with spacing
        button.setPosition(this.menuBtn.x, this.menuBtn.y)
         button.setVisible(true);
@@ -228,7 +225,8 @@ export class UiPopups extends Phaser.GameObjects.Container {
             settingblurGraphic.destroy();
             this.buttonMusic("buttonpressed")
         }, 0, true);
-        this.settingClose.setPosition(320, -250).setScale(0.8);
+        this.settingClose.setScale(0.2)
+        this.settingClose.setPosition(320, -250);
 
         popupBg.setOrigin(0.5);
         popupBg.setAlpha(1); // Set background transparency
@@ -270,7 +268,6 @@ export class UiPopups extends Phaser.GameObjects.Container {
     /**
      * @method openinfo
      */
-
         openInfoPopup() { 
             const inputOverlay = this.scene.add.rectangle(0, 0, this.scene.cameras.main.width, this.scene.cameras.main.height, 0x000000, 0.7)
             .setOrigin(0, 0)
@@ -298,10 +295,9 @@ export class UiPopups extends Phaser.GameObjects.Container {
             );
             scrollContainer.setMask(mask); // Apply the mask to the scroll container 
             popupContainer.add(scrollContainer); 
-            // console.log("initData", initData.UIData.symbols);
             
             // 7. Add the content that will be scrolled 
-            const contentHeight = 2900; // Example content height, adjust as needed 
+            const contentHeight = 3400; // Example content height, adjust as needed 
             // const content = this.scene.add.image( gameConfig.scale.width / 2, 100, 'minorSymbolsHeading' ).setOrigin(0.5).setDepth(2); 
             const content = this.scene.add.text( gameConfig.scale.width / 2, 20, 'SPECIAL REEL', { fontSize: '50px', color: '#ff8001', align: "center", fontFamily: "Arial", fontStyle: "Bold", } ).setOrigin(0.5)
             const line1 = this.scene.add.text(gameConfig.scale.width * 0.25, 100, "The rightmost reel is a special reel, when the reels to its left makes a winning combination, you get extra bonuses based on the symbol of the special reel!",  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 1000, useAdvancedWrap: true }, } )
@@ -335,10 +331,29 @@ export class UiPopups extends Phaser.GameObjects.Container {
             const symbolSevenText = this.scene.add.text(gameConfig.scale.width/2.2, 1790, `Any`, {fontSize: "40px", color: '#ffffff',  fontFamily: "Arial", align:"Center"}).setOrigin(0.5);
             const threexsecond = this.scene.add.text(gameConfig.scale.width * 0.5, 1790, `3X`, {fontSize: "40px", color: '#ff8001', fontFamily:"Arial",  align:"Center"}).setOrigin(0.5);
             const thirtyText = this.scene.add.text(gameConfig.scale.width * 0.54, 1790, `30`, {fontSize: "40px", color: '#ffffff', fontFamily:"Arial",  align:"Center"}).setOrigin(0.5);
-            // const secondMixedBar = this.scene.add.image()
-
+            const secondMixedBar = this.scene.add.image(gameConfig.scale.width * 0.42, 1900, "differentBar").setOrigin(0.5);
+            const secondMixedSevern = this.scene.add.image(gameConfig.scale.width * 0.56, 1900, "differentSeven").setOrigin(0.5);
+            const mixedAnyText = this.scene.add.text(gameConfig.scale.width/2.2, 2000, `Any`, {fontSize: "40px", color: '#ffffff',  fontFamily: "Arial", align:"Center"}).setOrigin(0.5);
+            const mixedThreeX = this.scene.add.text(gameConfig.scale.width * 0.5, 2000, `3X`, {fontSize: "40px", color: '#ff8001', fontFamily:"Arial",  align:"Center"}).setOrigin(0.5);
+            const mixed500 = this.scene.add.text(gameConfig.scale.width * 0.54, 2000, `500`, {fontSize: "40px", color: '#ffffff', fontFamily:"Arial",  align:"Center"}).setOrigin(0.5);
+            const line2 = this.scene.add.text(gameConfig.scale.width * 0.25, 2050, "1. According to the combo settings, you only win a prize if three identical symbols appera from the left to right.",  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 1000, useAdvancedWrap: true }, } )
+            const payLineImage = this.scene.add.image(gameConfig.scale.width/2, 2270, "payLineImage").setOrigin(0.5).setScale(0.8)
+            const line3 = this.scene.add.text(gameConfig.scale.width * 0.25, 2400, "2. Winning = Pay X Bet/3",  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 1000, useAdvancedWrap: true }, } )
+            const line4 = this.scene.add.text(gameConfig.scale.width * 0.25, 2450, `3. When"Special Reel Combination"appears, the payout this round gains an extra bonus based on the corresponding symbol!`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 1000, useAdvancedWrap: true }, } )
+            const line5 = this.scene.add.text(gameConfig.scale.width * 0.25, 2600, `4. Malfunction voids all pays and plays. If any malfunction occurs during the feature game, the system will automatically complete the game and ensure the player receives their winnings. Where an interruption occurs after the operator receives notification of the customer's gamble and where the customer can have no further influence on the outcome of the event or gamble the results of gamble should stand.`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 1000, useAdvancedWrap: true }, } )
+            const spinIcon = this.scene.add.image(gameConfig.scale.width * 0.28, 3000, "spinBtn").setOrigin(0.5).setScale(0.4)
+            const spinText = this.scene.add.text(gameConfig.scale.width * 0.31, 2975, `Spin: Tap to start spinning based on the current bet.`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 1000, useAdvancedWrap: true }, } )
+            const autospinIcon = this.scene.add.image(gameConfig.scale.width * 0.28, 3130, "autoSpin").setOrigin(0.5).setScale(0.8)
+            const autospinText = this.scene.add.text(gameConfig.scale.width * 0.31, 3100, `Auto Spin: Tap to start the auto play, and click again to stop the auto spin`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 900, useAdvancedWrap: true }, } )
+            const betIcon = this.scene.add.image(gameConfig.scale.width * 0.28, 3260, "betButton").setOrigin(0.5)
+            const betText = this.scene.add.text(gameConfig.scale.width * 0.31, 3235, `Bet Select: Tap to adjust the bet.`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 900, useAdvancedWrap: true }, } )
+            const turboIcon =  this.scene.add.image(gameConfig.scale.width * 0.28, 3390, "turboBtn").setOrigin(0.5).setScale(0.7)
+            const turboText = this.scene.add.text(gameConfig.scale.width * 0.31, 3350, `Turbo Spin: Tap to enable or disable the Turbo Spin to adjust the speed of reel spins on the game`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 900, useAdvancedWrap: true }, } )
+            const settingIcon =  this.scene.add.image(gameConfig.scale.width * 0.28, 3530, "MenuBtn").setOrigin(0.5).setScale(0.9)
+            const settingText = this.scene.add.text(gameConfig.scale.width * 0.31, 3490, `Option: Tap to show the game instruction and sound button`,  { fontSize: '35px', fontStyle: "Bold", color: '#ffffff', align: "left", fontFamily: "Arial", wordWrap: { width: 900, useAdvancedWrap: true }, } )
             scrollContainer.add([content, line1, firstSymbol, paragraphText, secondSymbol, secondSymbolText, thirdSymbol, thirdSymbolText, payTableHeading, symbolOne, symbolOneText, symbolOneTextAmount, symboleTwo, symbolTwoText, symbolTwoTextAmount, symbolThree, symbolThreeText, symbolThreeTextAmount, symbolFour, symbolFourText, symbolFourTextAmount, symbolFive, symbolFiveText, symbolFiveTextAmount,
-                symbolSix, symbolSixText, threex, fiveHundredText, mixedBar, symbolSevenText, threexsecond, thirtyText
+                symbolSix, symbolSixText, threex, fiveHundredText, mixedBar, symbolSevenText, threexsecond, thirtyText, secondMixedBar, secondMixedSevern, mixedAnyText, mixedThreeX, mixed500, line2, payLineImage, line3, line4, line5
+                , spinIcon, spinText, autospinIcon, autospinText, betIcon, betText, turboIcon, turboText, settingIcon, settingText
             ]); 
             // 8. Scrollbar background 
             const scrollbarBg = this.scene.add.sprite( gameConfig.scale.width/1.28, // Positioned on the right side 
@@ -348,8 +363,8 @@ export class UiPopups extends Phaser.GameObjects.Container {
             const roller = this.scene.add.image( gameConfig.scale.width/1.28, gameConfig.scale.height / 2 - 150, 'scrollerView' ).setOrigin(0.5).setInteractive({ draggable: true }); 
             popupContainer.add(roller); 
 
-            const closeButton = this.scene.add.sprite(gameConfig.scale.width * 0.25, gameConfig.scale.height / 2 - 330, 'exitButton').setInteractive(); // Adjust y-position as needed
-            closeButton.setScale(0.7)    
+            const closeButton = this.scene.add.sprite(gameConfig.scale.width * 0.235, gameConfig.scale.height / 2 - 335, 'exitButton').setInteractive(); // Adjust y-position as needed
+            closeButton.setScale(0.4)    
             closeButton.on('pointerdown', () => {
                     inputOverlay.destroy();
                     scrollContainer.destroy();  
@@ -537,37 +552,34 @@ export class UiPopups extends Phaser.GameObjects.Container {
         ).setDepth(1); // Set depth higher than blurGraphic
     
         // Popup background image
-        const popupBg = this.scene.add.image(0, 0, 'messagePopupBgImage').setDepth(10);
+        const popupBg = this.scene.add.image(0, 0, 'InfoPopupBg').setDepth(10);
         popupBg.setOrigin(0.5);
-        popupBg.setDisplaySize(1000, 883); // Set the size for your popup background
+        popupBg.setDisplaySize(900, 580); // Set the size for your popup background
         popupBg.setAlpha(1); // Set background transparency
         this.exitBtn.disableInteractive();
+        const quitHeading = this.scene.add.text(0, -260, "QUIT", {fontFamily:"Arial", fontSize:"35px", color:"#ffffff"}).setOrigin(0.5)
         // Add text to the popup
-        const popupText = new TextLabel(this.scene, 0, -45, "Do you really want \n to quit?", 50, "#000000");
-        
+        const popupText = this.scene.add.text(0, -45, "Do you really want \n to quit?", {fontSize: "50px", fontFamily: "Arial", color: "#ffffff", align: "center"}).setOrigin(0.5);
         // Yes and No buttons
         const yesButtonSprite = [
             this.scene.textures.get("yesButton"),
             this.scene.textures.get("yesButtonHover")
         ];
-
         // Yes and No buttons
         const noButtonSprite = [
             this.scene.textures.get("noButton"),
             this.scene.textures.get("noButtonHover")
         ];
-        const crossButton = new Phaser.GameObjects.Sprite(this.scene, 300, -250, "exitButton").setInteractive()
+        const crossButton = new Phaser.GameObjects.Sprite(this.scene, -390, -258, "exitButton").setInteractive()
         crossButton.on('pointerdown', (pointerdown: Phaser.Input.Pointer)=>{
             console.log("click");
             this.UiContainer.onSpin(false);
             this.exitBtn.setInteractive()
-            // this.exitBtn.setTexture("normalButton");
             popupContainer.destroy();
-            blurGraphic.destroy(); // Destroy blurGraphic when popup is closed
-            
+            blurGraphic.destroy(); // Destroy blurGraphic when popup is close
         })
+        crossButton.setScale(0.3)
         this.yesBtn = new InteractiveBtn(this.scene, yesButtonSprite, () => {
-            
             this.UiContainer.onSpin(false);
             Globals.Socket?.socket.emit("EXIT", {});
             window.parent.postMessage("onExit", "*");   
@@ -579,18 +591,14 @@ export class UiPopups extends Phaser.GameObjects.Container {
             
             this.UiContainer.onSpin(false);
             this.exitBtn.setInteractive()
-            // this.exitBtn.setTexture("normalButton");
             popupContainer.destroy();
         blurGraphic.destroy(); // Destroy blurGraphic when popup is closed
         }, 0, true);
        
         this.yesBtn.setPosition(-130, 200).setScale(0.8);
         this.noBtn.setPosition(130, 200).setScale(0.8);
-        // Button labels
-        // const noText = new TextLabel(this.scene, 130, 75, "No", 30, "#ffffff");
-        // const yesText = new TextLabel(this.scene, -130, 75, "Yes", 30, "#ffffff");
         // Add all elements to popupContainer
-        popupContainer.add([popupBg, popupText, this.yesBtn, this.noBtn, crossButton]);
+        popupContainer.add([popupBg, quitHeading, popupText, this.yesBtn, this.noBtn, crossButton]);
         // Add popupContainer to the scene
         this.scene.add.existing(popupContainer);       
     }
@@ -624,11 +632,9 @@ class InteractiveBtn extends Phaser.GameObjects.Sprite {
         });
         this.on('pointerup', () => {
             this.setTexture(this.defaultTexture.key)
-            // this.setFrame(0);
         });
         this.on('pointerout', () => {
             this.setTexture(this.defaultTexture.key)
-            // this.setFrame(0);
         });
         // Set up animations if necessary
         this.anims.create({

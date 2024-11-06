@@ -66,10 +66,11 @@ export class SocketManager {
           }
         }
         if(data.id == "ResultData"){
-              ResultData.gameData = data.message.GameData;
+              ResultData.gameData = data.message.gameData;
               ResultData.playerData = data.message.PlayerData;
               Globals.emitter?.Call("ResultData");
-              console.log(ResultData);
+              console.log(data);
+              console.log(ResultData, "ResultData")
         }
       });
     });
@@ -97,6 +98,8 @@ export class SocketManager {
     });
   }
   sendMessage(id : string, message: any) {
+    console.log(message, id, "sendMessage");
+    
     this.socket.emit(
       "message",
       JSON.stringify({ id: id, data: message })

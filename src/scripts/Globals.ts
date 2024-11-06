@@ -89,6 +89,7 @@ export const currentGameData = {
   isMoving: false,
   soundMode: true,
   musicMode: true,
+  turboMode: false,
 };
 
 export const ResultData = {
@@ -96,7 +97,10 @@ export const ResultData = {
     BonusResult: [],
     BonusStopIndex: -1,
     ResultReel: [[]],
+    resultSymbols: [[]],
     WinAmout: 0,
+    isFreeSpin: false,
+    freeSpinCount: 0,
     freeSpins: {
       count: 0,
       isNewAdded: false,
