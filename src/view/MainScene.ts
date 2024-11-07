@@ -69,7 +69,7 @@ export default class MainScene extends Scene {
         this.ReelFrame = new Phaser.GameObjects.Sprite(this, width/2.405, height/1.945, "ReelFrame").setDisplaySize(1100, 520);
         this.smallBoxx = new Phaser.GameObjects.Sprite(this, width/1.255, height/1.95, "smallBoxx").setDisplaySize(400, 410)
         this.SmallBoxxReel = new Phaser.GameObjects.Sprite(this, width/1.26, height/ 1.9, "SmallBoxxReel").setDisplaySize(400, 430),
-        this.goldenBar = new Phaser.GameObjects.Sprite(this, width/1.255, height/1.9, "goldenBar").setDisplaySize(380, 380);
+        this.goldenBar = new Phaser.GameObjects.Sprite(this, width/1.255, height/1.93, "goldenBar").setDisplaySize(380, 390);
         this.centerLine = new Phaser.GameObjects.Sprite(this, width/1.9, height/1.9, "centerLine").setScale(0.8)
         this.WheelawardText = new Phaser.GameObjects.Sprite(this, width * 0.795, height * 0.26, "Wheelaward").setScale(0.7)
         const traingleFrame: Phaser.Types.Animations.AnimationFrame[] = [];
@@ -209,7 +209,6 @@ export default class MainScene extends Scene {
     
     private endFreeSpins() {
         console.log("Ending Free Spins Sequence");
-        
         // Clear the interval
         if (this.freeSpinInterval) {
             clearInterval(this.freeSpinInterval);

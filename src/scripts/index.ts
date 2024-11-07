@@ -26,6 +26,7 @@ else{
   console.log("check");
   const data  = {
     socketUrl : "https://game-crm-rtp-backend.onrender.com/",
+    // socketUrl : "https://7p68wzhv-5000.inc1.devtunnels.ms/",
     authToken : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDg1MjhmYTI3YmY5MDI0NDNlYmExZiIsInVzZXJuYW1lIjoiYXJwaXQiLCJyb2xlIjoicGxheWVyIiwiaWF0IjoxNzMwNjk0MTkzLCJleHAiOjE3MzEyOTg5OTN9._eFWkGr-SQ_cCg9q_bL8CaHYcVub7wjwb9wEvMO3f94",
   }
   Globals.Socket = new SocketManager();

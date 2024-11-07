@@ -24,6 +24,7 @@ export class Slots extends Phaser.GameObjects.Container {
     private reelContainers: Phaser.GameObjects.Container[] = [];
     private reelTweens: Phaser.Tweens.Tween[] = []; // Array for reel tweens
     private connectionTimeout!: Phaser.Time.TimerEvent;
+    private fourthReelSymbolKeys!: string[]; // New array for 4th reel symbols
     constructor(scene: Phaser.Scene, uiContainer: UiContainer, callback: () => void, SoundManager : SoundManager) {
         super(scene);
         this.resultCallBack = callback;
@@ -43,7 +44,7 @@ export class Slots extends Phaser.GameObjects.Container {
         );
         // Filter and pick symbol keys based on the criteria
         this.symbolKeys = this.getFilteredSymbolKeys();
-        
+        this.fourthReelSymbolKeys = this.getFourthReelSymbolKeys();
         // Assume all symbols have the same width and height
         const exampleSymbol = new Phaser.GameObjects.Sprite(scene, 0, 0, this.getRandomSymbolKey());
         this.symbolWidth = exampleSymbol.displayWidth/ 4;
@@ -74,14 +75,20 @@ export class Slots extends Phaser.GameObjects.Container {
             
             this.slotSymbols[i] = [];
             for (let j = 0; j < 64; j++) {
-                let symbolKey = this.getRandomSymbolKey(); // Get a random symbol key
+                let symbolKey;
+                if (i === 3) { // 4th reel
+                    symbolKey = this.getRandomFourthReelSymbol();
+                } else {
+                    symbolKey = this.getRandomSymbolKey();
+                }
+                // let symbolKey = this.getRandomSymbolKey(); // Get a random symbol key
                 let slot = new Symbols(scene, symbolKey, { x: i, y: j }, reelContainer);
                 let symbolScale 
                 if(i == 3){
                     slot.symbol.setMask(new Phaser.Display.Masks.GeometryMask(scene, fourthReelMask));
                     this.spacingX = 360;
                     this.spacingY = 220;
-                    symbolScale = 0.78;
+                    symbolScale = 0.79;
                     slot.symbol.setPosition(
                         startPos.x + i * this.spacingX,
                         startPos.y + j * this.spacingY + 20
@@ -116,12 +123,34 @@ export class Slots extends Phaser.GameObjects.Container {
                 const number1 = parseInt(num1, 10);
                 const number2 = parseInt(num2, 10);
                 // Check if the numbers are within the desired range
-                return number1 >= 1 && number1 <= 14 && number2 >= 1 && number2 <= 14;
+                return number1 >= 1 && number1 <= 5 && number2 >= 1 && number2 <= 5;
             }
             return false;
         });
-
         return filteredSprites;
+    }
+
+    getFourthReelSymbolKeys(): string[] {
+        // Filter symbols for 4th reel (modify the pattern as needed)
+        const allSprites = Globals.resources;
+        const filteredSprites = Object.keys(allSprites).filter(spriteName => {
+            const regex = /^slots\d+_\d+$/; // Example pattern for special symbols
+            if (regex.test(spriteName)) {
+                const [, num1, num2] = spriteName.match(/^slots(\d+)_(\d+)$/) || [];
+                const number1 = parseInt(num1, 10);
+                const number2 = parseInt(num2, 10);
+                // Adjust range as needed
+                return number1 >= 6 && number1 <= 11 && number2 >= 6 && number2 <= 12;
+            }
+            return false;
+        });
+    
+        return filteredSprites;
+    }
+
+    getRandomFourthReelSymbol(): string {
+        const randomIndex = Phaser.Math.Between(0, this.fourthReelSymbolKeys.length - 1);
+        return this.fourthReelSymbolKeys[randomIndex];
     }
 
     getRandomSymbolKey(): string {
@@ -281,7 +310,7 @@ export class Slots extends Phaser.GameObjects.Container {
                 this.scene.anims.create({
                     key: animationId,
                     frames: textureKeys.map(key => ({ key })),
-                    frameRate: 20,
+                    frameRate: 30,
                     repeat: -1
                 });
             }
@@ -290,10 +319,7 @@ export class Slots extends Phaser.GameObjects.Container {
         if (this.scene.anims.exists(animationId)) {
             if (isFirstThreeSame && x < 3 && elementId === firstSymbol) {
                 console.log("Check all are same");
-                // Play animation and notify UiContainer
-                // symbol.playAnimation(animationId);
-                // this.uiContainer.handleMatchingAnimation(elementId, x)
-                // this.uiContainer.handleMatchingAnimation(elementId, x);
+               
             }
             symbol.playAnimation(animationId);
         } else {
@@ -312,7 +338,7 @@ class Symbols {
     startX: number = 0;
     startMoving: boolean = false;
     index: { x: number; y: number };
-    totalSymbol : number = 14;
+    totalSymbol : number = 64;
     visibleSymbol: number = 3;
     startIndex: number = 1;
     spacingY : number = 204;
@@ -320,13 +346,15 @@ class Symbols {
     scene: Phaser.Scene;
     private isMobile: boolean;
     reelContainer: Phaser.GameObjects.Container;
-    private bouncingTween: Phaser.Tweens.Tween | null = null;
 
     constructor(scene: Phaser.Scene, symbolKey: string, index: { x: number; y: number }, reelContainer: Phaser.GameObjects.Container) {
         this.scene = scene;
         this.index = index;
         this.reelContainer = reelContainer;
-        const updatedSymbolKey = this.updateKeyToZero(symbolKey);
+        const updatedSymbolKey = this.index.x === 3 ? 
+            this.updateSpecialKeyToZero(symbolKey) : 
+            this.updateKeyToZero(symbolKey);
+            
         this.symbol = new Phaser.GameObjects.Sprite(scene, 0, 0, updatedSymbolKey);
         this.symbol.setOrigin(0.5, 0.5);
         this.isMobile = scene.sys.game.device.os.android || scene.sys.game.device.os.iOS;
@@ -342,6 +370,16 @@ class Symbols {
             frameRate: 20,
             repeat: -1,
         });
+    }
+
+    updateSpecialKeyToZero(symbolKey: string): string {
+        // Modify this based on your special symbol naming convention
+        const match = symbolKey.match(/^slots(\d+)_\d+$/);
+        if (match) {
+            const xValue = match[1];
+            return `slots${xValue}_0`;
+        }
+        return symbolKey;
     }
 
     updateKeyToZero(symbolKey: string): string {
