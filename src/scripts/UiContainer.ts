@@ -189,32 +189,6 @@ export class UiContainer extends Phaser.GameObjects.Container {
             this.bnuttonMusic("buttonpressed");
             this.pBtn.setTexture('betButtonH');
             this.pBtn.disableInteractive();
-            // if (!currentGameData.isMoving) {
-            //     currentGameData.currentBetIndex++;
-            //     if (currentGameData.currentBetIndex >= initData.gameData.Bets.length) {
-            //         currentGameData.currentBetIndex = 0;
-            //     }
-            //     const betAmount = initData.gameData.Bets[currentGameData.currentBetIndex];
-            //     this.CurrentLineText.setText(betAmount);
-            //     let trippleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 500)
-            //     let doubleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100)
-            //     let singleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50)
-            //     let mixedSevenamount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 10);
-            //     let mixedBarAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 4)
-            //     let anyAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 2)
-            //     let tirpleBar = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 20)
-            //     let trippleBarBar = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 30)
-            //     this.trippleSevenAmount.updateLabelText(trippleAmount.toString())
-            //     this.doubleSevenAmount.updateLabelText(doubleAmount.toString());
-            //     this.singleSevenAmount.updateLabelText(singleAmount.toString());
-            //     this.doubleDollarAmount.updateLabelText(doubleAmount.toString());
-            //     this.mixedSeven.updateLabelText(mixedSevenamount.toString())
-            //     this.mixedBar.updateLabelText(mixedBarAmount.toString());
-            //     this.addDollar.updateLabelText(mixedSevenamount.toString());
-            //     this.anyText.updateLabelText(anyAmount.toString());
-            //     this.barBarAmount.updateLabelText(trippleBarBar.toString());
-            //     this.barAmount.updateLabelText(tirpleBar.toString())
-            // }
             this.scene.time.delayedCall(200, () => {
                 this.pBtn.setTexture('betButton');
                 this.pBtn.setInteractive({ useHandCursor: true, pixelPerfect: true });
@@ -283,8 +257,8 @@ export class UiContainer extends Phaser.GameObjects.Container {
                 onComplete: () => {
                     // Send message and update the balance
                     Globals.Socket?.sendMessage("SPIN", { currentBet: currentGameData.currentBetIndex, currentLines: 1, spins: 1 });
-                    currentGameData.currentBalance -= initData.gameData.Bets[currentGameData.currentBetIndex];
-                    this.currentBalanceText.setText(currentGameData.currentBalance.toFixed(2));
+                    // currentGameData.currentBalance -= initData.gameData.Bets[currentGameData.currentBetIndex];
+                    // this.currentBalanceText.setText(currentGameData.currentBalance.toFixed(2));
                     // Trigger the spin callback
                     this.onSpin(true);
                     spinCallBack();
@@ -463,10 +437,12 @@ export class UiContainer extends Phaser.GameObjects.Container {
             this.spinBtn.setTexture("spinBtnOnPressed");
             this.autoBetBtn.setTexture("autoSpinOnPressed");
             this.autoBetBtn.disableInteractive();
+            this.turboButton.disableInteractive()
             // this.maxbetBtn.disableInteractive();
             this.pBtn.disableInteractive();
             
         }else{
+            this.turboButton.setInteractive()
             this.spinBtn.setTexture("spinBtn");
             this.spinBtn.setInteractive({ useHandCursor: true, pixelPerfect: true });
             this.autoBetBtn.setTexture("autoSpin");
@@ -568,6 +544,16 @@ export class UiContainer extends Phaser.GameObjects.Container {
     bnuttonMusic(key: string){
         this.SoundManager.playSound(key)
     }
+
+    handleMatchingAnimation(symbolId: string, reelIndex: number) {
+        console.log(`Matching symbol ${symbolId} on reel ${reelIndex}`);
+        // Here you can create special effects or animations
+        // based on the matching symbols
+        
+        // Example: Create special effects for matching symbols
+        // this.createMatchingSymbolEffect(symbolId, reelIndex);
+    }
+
     update(dt: number){
         console.log("check container");
         

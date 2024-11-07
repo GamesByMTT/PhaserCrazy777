@@ -66,11 +66,14 @@ export class SocketManager {
           }
         }
         if(data.id == "ResultData"){
-              ResultData.gameData = data.message.gameData;
-              ResultData.playerData = data.message.PlayerData;
-              Globals.emitter?.Call("ResultData");
-              // console.log(data);
-              console.log(ResultData, "ResultData")
+          setTimeout(() => {
+            ResultData.gameData = data.message.gameData;
+            ResultData.playerData = data.message.PlayerData;
+            Globals.emitter?.Call("ResultData");
+            // console.log(data);
+            console.log(ResultData, "ResultData")
+          }, 500);
+             
         }
       });
     });

@@ -39,6 +39,7 @@ export default class MainScene extends Scene {
     WheelawardText!: Phaser.GameObjects.Sprite
     private mainContainer!: Phaser.GameObjects.Container;
     private winningLine: Phaser.GameObjects.Sprite | null = null;
+    private freeSpinInterval: NodeJS.Timeout | null = null;
 
     constructor() {
         super({ key: 'MainScene' });
@@ -93,7 +94,6 @@ export default class MainScene extends Scene {
         this.triangleanim4.play("Traingle")
         this.triangleanim5.play("Traingle")
         this.triangleanim6.play("Traingle")
-
         this.mainContainer.add([this.logo, this.reelBg, this.SmallBoxxReel,this.ReelFrame, this.seconOuterFrame,  this.redBox, this.redSmallBox, this.fristFrameBg, this.WheelawardText, this.goldenBar, this.smallBoxx, this.triangleanim1, this.triangleanim2, this.triangleanim3, this.triangleanim4, this.triangleanim5, this.triangleanim6])
         this.soundManager.playSound("backgroundMusic")
         // // Initialize Slots
@@ -154,45 +154,30 @@ export default class MainScene extends Scene {
             this.time.delayedCall(3500, () => {    
                 if(ResultData.playerData.currentWining > 0){
                     this.playwinningArrowAnimation();
+                }if(ResultData.gameData.isFreeSpin){
+                    this.reelBg.setTexture("blueReelBg");
+                    this.SmallBoxxReel.setTexture("goldenRespin");
+                }else{
+                    this.reelBg.setTexture("reelBg");
+                    this.SmallBoxxReel.setTexture("SmallBoxxReel");
+                }
+                if(ResultData.gameData.isFreeSpin){
+                    this.reelBg.setTexture("blueReelBg");
+                    this.SmallBoxxReel.setTexture("goldenRespin");
+    
+                    // Start free spins if not already running
+                    if (!this.freeSpinInterval && ResultData.gameData.freeSpinCount > 0) {
+                        this.startFreeSpins();
+                        this.uiContainer.onSpin(true);
+                    }
+                } else {
+                    this.reelBg.setTexture("reelBg");
+                    this.SmallBoxxReel.setTexture("SmallBoxxReel");
                 }
                 this.uiContainer.currentWiningText.setText(ResultData.playerData.currentWining.toFixed(2));
                 currentGameData.currentBalance = ResultData.playerData.Balance;
-                let betValue = (initData.gameData.Bets[currentGameData.currentBetIndex]) * 20
-                let jackpot = ResultData.gameData.jackpot
-                let winAmount = ResultData.gameData.WinAmout;  
                 let newBalance = currentGameData.currentBalance 
                 this.uiContainer.currentBalanceText.setText(newBalance.toString());
-                const freeSpinCount = ResultData.gameData.freeSpinCount;
-                // Check if freeSpinCount is greater than 1
-                // if (freeSpinCount >=1) {
-                //     this.freeSpinPopup(freeSpinCount, 'freeSpinPopup')
-                //     this.uiContainer.freeSpininit(freeSpinCount)
-                //     this.tweens.add({
-                //         targets: this.uiContainer.freeSpinText,
-                //         scaleX: 1.3, 
-                //         scaleY: 1.3, 
-                //         duration: 800, // Duration of the scale effect
-                //         yoyo: true, 
-                //         repeat: -1, 
-                //         ease: 'Sine.easeInOut' // Easing function
-                //     });
-                // } else {
-                //     // If count is 1 or less, ensure text is scaled normally
-                //     this.uiContainer.freeSpininit(freeSpinCount)
-                // }
-                // if (winAmount >= 10 * betValue && winAmount < 15 * betValue) {
-                //  // Big Win Popup
-                //  this.showWinPopup(winAmount, 'bigWinPopup')
-                // } else if (winAmount >= 15 * betValue && winAmount < 20 * betValue) {
-                //     // HugeWinPopup
-                //     this.showWinPopup(winAmount, 'hugeWinPopup')
-                // } else if (winAmount >= 20 * betValue && winAmount < 25 * betValue) {
-                //     //MegawinPopup
-                //     this.showWinPopup(winAmount, 'megaWinPopup')
-                // } else if(jackpot > 0) {
-                //    //jackpot Condition
-                //    this.showWinPopup(winAmount, 'jackpotPopup')
-                // }
             });
             setTimeout(() => {
                 this.slot.stopTween();
@@ -200,113 +185,49 @@ export default class MainScene extends Scene {
         }
     }
 
-    /**
-     * @method freeSpinPopup
-     * @description Displays a popup showing the win amount with an increment animation and different sprites
-     * @param freeSpinCount The amount won to display in the popup
-     * @param spriteKey The key of the sprite to display in the popup
-     */
-    // freeSpinPopup(freeSpinCount: number, spriteKey: string) {
-    //     // Create the popup background
-    //     const inputOverlay = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x2a1820, 0.95)
-    //     .setOrigin(0, 0)
-    //     .setDepth(9) // Set depth to be below the popup but above game elements
-    //     .setInteractive() // Make it interactive to block all input events
-    //     inputOverlay.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-    //         // Prevent default action on pointerdown to block interaction
-    //         pointer.event.stopPropagation();
-    //     });
-    //     // Create the sprite based on the key provided
-    //     const winSprite = this.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY, spriteKey).setDepth(11);
-    //     if(!this.uiContainer.isAutoSpinning){
-    //     }
-    //     // Create the text object to display win amount
-    //     const freeText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, '0', {
-    //         font: '55px',
-    //         color: '#000000'
-    //     }).setDepth(11).setOrigin(0.5);
-    //     // Tween to animate the text increment from 0 to winAmount
-    //     this.tweens.addCounter({
-    //         from: 0,
-    //         to: freeSpinCount,
-    //         duration: 200, // Duration of the animation in milliseconds
-    //         onUpdate: (tween) => {
-    //             const value = Math.floor(tween.getValue());
-    //             freeText.setText(value.toString());
-    //         },
-    //         onComplete: () => {
-    //             const startButton = this.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY + 80, 'freeSpinStartButton').setDepth(11).setScale(0.5, 0.5).setInteractive();
-    //             startButton.on("pointerdown", () => {
-    //                         inputOverlay.destroy();
-    //                         freeText.destroy();
-    //                         winSprite.destroy();
-    //                         startButton.destroy();
-    //                         Globals.Socket?.sendMessage("SPIN", { currentBet: currentGameData.currentBetIndex, currentLines: 20, spins: 1 });
-    //                         currentGameData.currentBalance -= initData.gameData.Bets[currentGameData.currentBetIndex];
-    //                         // this.currentBalanceText.updateLabelText(currentGameData.currentBalance.toFixed(2));
-    //                         this.onSpinCallBack();
-    //             });
-    //             if(this.uiContainer.isAutoSpinning){
-    //             this.time.delayedCall(3000, () => {
-    //                 inputOverlay.destroy();
-    //                 freeText.destroy();
-    //                 winSprite.destroy();
-    //             });
-    //             }
-    //         }
-    //     });
-    // }
-
-    /**
-     * @method showWinPopup
-     * @description Displays a popup showing the win amount with an increment animation and different sprites
-     * @param winAmount The amount won to display in the popup
-     * @param spriteKey The key of the sprite to display in the popup
-     */
-    // showWinPopup(winAmount: number, spriteKey: string) {
-    //     // Create the popup background
-    //     const inputOverlay = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x2a1820, 0.95)
-    //     .setOrigin(0, 0)
-    //     .setDepth(15) // Set depth to be below the popup but above game elements
-    //     .setInteractive() // Make it interactive to block all input events
-    //     inputOverlay.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-    //         // Prevent default action on pointerdown to block interaction
-    //         pointer.event.stopPropagation();
-    //     });
-    //     let winSprite: any
-    //     if(spriteKey === "jackpotPopup"){
-    //         winSprite = this.add.sprite(this.cameras.main.centerX - 125, this.cameras.main.centerY - 250, spriteKey).setDepth(15);
-    //     }else if(spriteKey === "hugeWinPopup"){
-    //         winSprite = this.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY - 120, spriteKey).setDepth(15);
-    //     } else{
-    //         winSprite = this.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY - 50, spriteKey).setDepth(15);
-    //     }
-      
-    //     // Create the text object to display win amount
-    //     const winText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, '0', {
-    //         font: '55px',
-    //         color: '#000000'
-    //     }).setDepth(15).setOrigin(0.5);
-
-    //     // Tween to animate the text increment from 0 to winAmount
-    //     this.tweens.addCounter({
-    //         from: 0,
-    //         to: winAmount,
-    //         duration: 500, // Duration of the animation in milliseconds
-    //         onUpdate: (tween) => {
-    //             const value = Math.floor(tween.getValue());
-    //             winText.setText(value.toString());
-    //         },
-    //         onComplete: () => {
-    //             // Automatically close the popup after a few seconds
-    //             this.time.delayedCall(4000, () => {
-    //                 inputOverlay.destroy();
-    //                 winText.destroy();
-    //                 winSprite.destroy();
-    //             });
-    //         }
-    //     });
-    // }
+    private startFreeSpins() {
+        console.log("Starting Free Spins Sequence");
+        // Clear any existing interval
+        if (this.freeSpinInterval) {
+            clearInterval(this.freeSpinInterval);
+        }
+        // Set interval for free spins
+        this.freeSpinInterval = setInterval(() => {
+            if (ResultData.gameData.freeSpinCount > 0) {
+                console.log(`Free Spin triggered. Remaining: ${ResultData.gameData.freeSpinCount}`);
+                this.onSpinCallBack();
+                ResultData.gameData.freeSpinCount--;
+                setTimeout(() => {
+                    this.slot.stopTween();
+                }, 1000);
+            } else {
+                // End free spins
+                this.endFreeSpins();
+            }
+        }, 6000); // Adjust timing as needed (6 seconds between spins)
+    }
+    
+    private endFreeSpins() {
+        console.log("Ending Free Spins Sequence");
+        
+        // Clear the interval
+        if (this.freeSpinInterval) {
+            clearInterval(this.freeSpinInterval);
+            this.freeSpinInterval = null;
+        }
+        // Reset free spin state
+        ResultData.gameData.isFreeSpin = false;
+        this.reelBg.setTexture("reelBg");
+        this.SmallBoxxReel.setTexture("SmallBoxxReel");
+        this.uiContainer.onSpin(false);
+        // Any additional cleanup or end-of-free-spins logic
+        this.handleFreeSpinsEnd();
+    }
+    
+    private handleFreeSpinsEnd() {
+        console.log("Free spins completed");
+        // Add any additional end-of-free-spins logic here
+    }
 
     // Winning Animatiom over Symbol lineGlow
     playwinningArrowAnimation() {
@@ -324,7 +245,7 @@ export default class MainScene extends Scene {
             this.cameras.main.width / 1.9,
             this.cameras.main.height / 1.9,
             `lineBar0` // Initial frame
-        ).setDepth(15).setScale(0.8); // Ensure it's on top
+        ).setDepth(5).setScale(0.8); // Ensure it's on top
         this.winningLine.play('winningLineAnimation');
     }
 

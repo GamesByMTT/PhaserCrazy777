@@ -42,34 +42,22 @@ export const LoaderConfig = {
     bigWinPopup: "src/sprites/BigWinPopup.png",
     hugeWinPopup:"src/sprites/HugeWinPopup.png",
     megaWinPopup: "src/sprites/MegaWinPopUpImage.png",
-    // jackpotPopup: "src/sprites/jackpotPopup.png",
+
     freeSpinPopup: "src/sprites/FreeSpinPopup.png",
-    // freeSpinStartButton: "src/sprites/freeSpinStartButton.png",
-    // freeSpinStartButtonPressed: "src/sprites/freeSpinStartButton.png",
+
     spinCircle: "src/sprites/SpinCircle.png",
-    // spinCenter: "src/sprites/SpinCenter.png",
+
     wheelBg: "src/sprites/WheelBg.png",
     assetsloader: "src/sprites/assetsLoader.png",
     loaderBg: "src/sprites/loaderBg.png",
     reelBg: "src/sprites/reelBg.jpg",   
-    // column: "src/sprites/columnLeft.png",
-    // roof:"src/sprites/Roof.png",
-    // winLine: "src/sprites/WinLine.png",
-    // settingPopup:"src/sprites/settingPopup.png",
-    // soundImage:"src/sprites/Sounds.png",
-    // musicImage: "src/sprites/Music.png",
-    // toggleBar: "src/sprites/ToggleBar.png",
-    // onButton: "src/sprites/On.png",
-    // offButton: "src/sprites/Off.png",
-    // headingImage: "src/sprites/PayTable_.png",
-    // payLinesImage: "src/sprites/payLinesImage.png",
+
     scrollBg: "src/sprites/ScrollBar.png",
-    // scroller:"src/sprites/Roller.png",
+
     gamelogo: "src/sprites/Logo.png",
-    // lineButton: "src/sprites/lineButton.png",
-    // settingText: "src/sprites/SettingButton.png",
+
     InfoPopupBg: "src/sprites/infoBg.png",
-    // disconnectClose: "src/sprites/disconnectClose.png",
+
 
 
     Wheelaward: "/src/sprites/Wheelaward.png",
@@ -107,6 +95,8 @@ export const LoaderConfig = {
     closeButton: "src/sprites/CloseButton.png",
     betContainerButon: "src/sprites/betContainerButon.png",
     betContainerHover: "src/sprites/betContainerHover.png",
+    blueReelBg: "src/sprites/BlueBGBox.png",
+    goldenRespin: "src/sprites/GoldenReelBox.png",
 
     lineBar0: "src/sprites/linebar0.png",
     lineBar1: "src/sprites/linebar1.png",
@@ -182,7 +172,7 @@ export const LoaderConfig = {
     Triangle46: "src/sprites/Triangle46.png",
     Triangle47: "src/sprites/Triangle47.png",
     
-   
+  
 
     slots1_0 :  "/src/sprites/Symbols/777/slots7771.png",
     slots1_1 :  "/src/sprites/Symbols/777/slots7772.png",

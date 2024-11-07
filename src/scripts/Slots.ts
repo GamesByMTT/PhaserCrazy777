@@ -64,7 +64,6 @@ export class Slots extends Phaser.GameObjects.Container {
              gameConfig.scale.width / 6.5 + (this.spacingX * 3), // Adjust position for 4th reel
              gameConfig.scale.height * 0.348
          );
-
         const totalSymbol = 7;
         const visibleSymbol = 3;
         const startIndex = 1;
@@ -82,7 +81,7 @@ export class Slots extends Phaser.GameObjects.Container {
                     slot.symbol.setMask(new Phaser.Display.Masks.GeometryMask(scene, fourthReelMask));
                     this.spacingX = 360;
                     this.spacingY = 220;
-                    symbolScale = 0.75;
+                    symbolScale = 0.78;
                     slot.symbol.setPosition(
                         startPos.x + i * this.spacingX,
                         startPos.y + j * this.spacingY + 20
@@ -95,7 +94,6 @@ export class Slots extends Phaser.GameObjects.Container {
                         startPos.y + j * this.spacingY
                     );
                 }
-                
                 slot.symbol.setScale(symbolScale)
                 slot.startX = slot.symbol.x;
                 slot.startY = slot.symbol.y;
@@ -131,18 +129,19 @@ export class Slots extends Phaser.GameObjects.Container {
         return this.symbolKeys[randomIndex];
     }
 
-    moveReel() {    
+    moveReel() {   
+        const reelsToSpin = ResultData.gameData.isFreeSpin ? 3 : this.reelContainers.length;
         const initialYOffset = (this.slotSymbols[0][0].totalSymbol - this.slotSymbols[0][0].visibleSymbol - this.slotSymbols[0][0].startIndex) * this.slotSymbols[0][0].spacingY;
-        setTimeout(() => {
-            for (let i = 0; i < this.reelContainers.length; i++) {
-                this.reelContainers[i].setPosition(
-                    this.reelContainers[i].x,
-                    -initialYOffset // Set the reel's position back to the calculated start position
-                );
-            }    
+          setTimeout(() => {
+                for (let i = 0; i < reelsToSpin; i++) {
+                    this.reelContainers[i].setPosition(
+                        this.reelContainers[i].x,
+                        -initialYOffset // Set the reel's position back to the calculated start position
+                    );
+                }    
         }, 100);
-         
-        for (let i = 0; i < this.reelContainers.length; i++) {
+        
+        for (let i = 0; i < reelsToSpin; i++) {
             for (let j = 0; j < this.reelContainers[i].list.length; j++) {
                 setTimeout(() => {
                     this.slotSymbols[i][j].startMoving = true;
@@ -152,7 +151,7 @@ export class Slots extends Phaser.GameObjects.Container {
         }
         this.moveSlots = true;
         setTimeout(() => {
-            for (let i = 0; i < this.reelContainers.length; i++) {
+            for (let i = 0; i < reelsToSpin; i++) {
                 this.startReelSpin(i);
             }
         }, 100);
@@ -171,12 +170,13 @@ export class Slots extends Phaser.GameObjects.Container {
             this.reelTweens[reelIndex].stop(); 
         }
         const reel = this.reelContainers[reelIndex];
-        const spinDistance = currentGameData.turboMode ? (this.spacingY * 13) : this.spacingY * 10; // Adjust this value for desired spin speed 
+        const spinDistance = this.spacingY * 7; // Adjust this value for desired spin speed 
+        let reelDuration = currentGameData.turboMode ? 400 : 600
         // reel.y -= 1;
         this.reelTweens[reelIndex] = this.scene.tweens.add({
             targets: reel,
             y: `+=${spinDistance}`, // Spin relative to current position
-            duration: 800, 
+            duration: reelDuration, 
             repeat: -1, 
             onComplete: () => {},
         });
@@ -184,7 +184,7 @@ export class Slots extends Phaser.GameObjects.Container {
 
     stopReel(reelIndex: number) {
         const reel = this.reelContainers[reelIndex];
-        const reelDelay = 300 * (reelIndex + 1);
+        const reelDelay = 400 * (reelIndex + 1);
         // Get the middle row value for this reel
         const middleRowValue = ResultData.gameData.resultSymbols[1][reelIndex];
         let targetY = 0; // default position
@@ -199,7 +199,7 @@ export class Slots extends Phaser.GameObjects.Container {
         this.scene.tweens.add({
             targets: reel,
             y: targetY,
-            duration: 800,
+            duration: 900,
             ease: 'Cubic.easeOut',
             onComplete: () => {
                 if (this.reelTweens[reelIndex]) {
@@ -243,15 +243,18 @@ export class Slots extends Phaser.GameObjects.Container {
     // Function to play win animations
     playWinAnimations() {
         this.resultCallBack(); // Call the result callback
-                let y = 0;
+                let y = 1;
                 const row = ResultData.gameData.resultSymbols[1];
-             
-                
+                // Check if first three symbols are same
+                const firstThreeSymbols = row.slice(0, 3);
+                const allSame = firstThreeSymbols.every(symbol => 
+                    symbol !== '0' && symbol === firstThreeSymbols[0]
+                );
                 for (let x = 0; x < row.length; x++) {
                     const elementId = row[x];
                     if (elementId !== '0') {
-                        if (this.slotSymbols[y] && this.slotSymbols[y][x]) {
-                            // this.playSymbolAnimation(x, y, elementId);
+                        if (this.slotSymbols[x] && this.slotSymbols[y][x] && ResultData.playerData.currentWining > 0) {
+                            this.playSymbolAnimation(x, y, elementId, allSame, firstThreeSymbols[0]);
                         }
                         // Play win sound for each non-zero symbol
                         this.winMusic("winMusic");
@@ -261,14 +264,11 @@ export class Slots extends Phaser.GameObjects.Container {
                 }
     }
 
-    playSymbolAnimation(y: number, x: number, elementId: string) {
-        const symbol = this.slotSymbols[y][x];
+    playSymbolAnimation(x: number, y: number, elementId: string, isFirstThreeSame: boolean, firstSymbol: string) {
+        const symbol = this.slotSymbols[x][y];
         // const animationId = `symbol_anim_${elementId}`;
         const animationId = `symbol_anim_${elementId}`;
-         // Remove existing animation if it exists
-        if (this.scene.anims.exists(animationId)) {
-            this.scene.anims.remove(animationId);
-        }
+
         if (!this.scene.anims.exists(animationId)) {
             let textureKeys: string[] = [];
             for (let i = 0; i < 24; i++) {
@@ -288,6 +288,13 @@ export class Slots extends Phaser.GameObjects.Container {
         }
 
         if (this.scene.anims.exists(animationId)) {
+            if (isFirstThreeSame && x < 3 && elementId === firstSymbol) {
+                console.log("Check all are same");
+                // Play animation and notify UiContainer
+                // symbol.playAnimation(animationId);
+                // this.uiContainer.handleMatchingAnimation(elementId, x)
+                // this.uiContainer.handleMatchingAnimation(elementId, x);
+            }
             symbol.playAnimation(animationId);
         } else {
         }
@@ -337,7 +344,6 @@ class Symbols {
         });
     }
 
-   
     updateKeyToZero(symbolKey: string): string {
         const match = symbolKey.match(/^slots(\d+)_\d+$/);
         if (match) {
@@ -358,6 +364,7 @@ class Symbols {
     }
 
     endTween() {
+        
         if (this.index.y < 3) {
             let textureKeys: string[] = [];
             // Retrieve the elementId based on index
