@@ -10,13 +10,13 @@ import PathBase from 'phaser3-rex-plugins/plugins/gameobjects/shape/shapes/geoms
 export class UiContainer extends Phaser.GameObjects.Container {
     SoundManager: SoundManager
     spinBtn!: Phaser.GameObjects.Sprite;
-    maxbetBtn!: Phaser.GameObjects.Sprite;
     autoBetBtn!: Phaser.GameObjects.Sprite;
     freeSpinBgImg!: Phaser.GameObjects.Sprite
     CurrentBetText!: Phaser.GameObjects.Text;
     currentWiningText!: Phaser.GameObjects.Text;
     currentBalanceText!: Phaser.GameObjects.Text;
     turboStatus: boolean = false;
+    betOpen: boolean = true;
     trippleSevenAmount!: TextLabel;
     doubleSevenAmount!: TextLabel;
     singleSevenAmount!: TextLabel;
@@ -46,6 +46,7 @@ export class UiContainer extends Phaser.GameObjects.Container {
     buttonBg!: Phaser.GameObjects.Sprite;
     turboButton!: Phaser.GameObjects.Sprite;
     turbobuttonOff!: Phaser.GameObjects.Sprite
+    private betContainer: Phaser.GameObjects.Container | null = null;
 
     constructor(scene: Scene, spinCallBack: () => void, soundManager: SoundManager) {
         super(scene);
@@ -113,7 +114,7 @@ export class UiContainer extends Phaser.GameObjects.Container {
             ).setScale(0.28);
         }
         const triple7amountBg = this.scene.add.sprite(gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.07, "AmountBg").setScale(0.8)
-        this.trippleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.07, new Number(initData.gameData.Bets[currentGameData.currentBetIndex]* 500).toString(), 27, "#ffffff");
+        this.trippleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.07, new Number(initData.gameData.Bets[currentGameData.currentBetIndex]* 500).toString(), 27);
         this.add([triple7amountBg, this.trippleSevenAmount]);
     }
 
@@ -127,7 +128,7 @@ export class UiContainer extends Phaser.GameObjects.Container {
             ).setScale(0.3);
         }
         const double7amountBg = this.scene.add.sprite(gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.15, "AmountBg").setScale(0.8)
-        this.doubleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.15, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100).toString(), 27, "#ffffff");
+        this.doubleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.15, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100).toString(), 27);
         this.add([double7amountBg, this.doubleSevenAmount])
     }
     bar(){
@@ -154,7 +155,7 @@ export class UiContainer extends Phaser.GameObjects.Container {
             ).setScale(0.3)
         }
         const single7amountBg = this.scene.add.sprite(gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.23, "AmountBg").setScale(0.8)
-        this.singleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.23, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50).toString(), 27, "#ffffff");
+        this.singleSevenAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.42, gameConfig.scale.height * 0.23, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50).toString(), 27);
         this.add([single7amountBg, this.singleSevenAmount]);
     }
 
@@ -165,7 +166,7 @@ export class UiContainer extends Phaser.GameObjects.Container {
         const multipleSprite = this.scene.add.sprite(gameConfig.scale.width * 0.88, gameConfig.scale.height * 0.07, "multiple").setScale(0.8);
         const doubleAdd = this.scene.add.sprite(gameConfig.scale.width * 0.7, gameConfig.scale.height * 0.16, "slots9_0").setScale(0.4);
         const doubleAddAmountBg = this.scene.add.sprite(gameConfig.scale.width * 0.749, gameConfig.scale.height * 0.16, "AmountBg").setScale(0.7)
-        this.doubleDollarAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.749, gameConfig.scale.height * 0.16, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100).toString(), 27, "#ffffff");
+        this.doubleDollarAmount = new TextLabel(this.scene, gameConfig.scale.width * 0.749, gameConfig.scale.height * 0.16, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100).toString(), 27);
         const addSprite = this.scene.add.sprite(gameConfig.scale.width * 0.82, gameConfig.scale.height * 0.16, "slots10_0").setScale(0.4);
         const addSpirteAmountBg =  this.scene.add.sprite(gameConfig.scale.width * 0.86, gameConfig.scale.height * 0.16, "AmountBg").setScale(0.7)
         this.addDollar = new TextLabel(this.scene, gameConfig.scale.width * 0.86, gameConfig.scale.height * 0.16, new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 10).toString(), 27)
@@ -184,43 +185,44 @@ export class UiContainer extends Phaser.GameObjects.Container {
         // const lineText = new TextLabel(this.scene, -20, -70, "LINES", 30, "#3C2625");
         // container.add(lineText);
         this.pBtn = this.createButton('betButton', 80, 3, () => {
+            this.betOption();
             this.bnuttonMusic("buttonpressed");
             this.pBtn.setTexture('betButtonH');
             this.pBtn.disableInteractive();
-            if (!currentGameData.isMoving) {
-                currentGameData.currentBetIndex++;
-                if (currentGameData.currentBetIndex >= initData.gameData.Bets.length) {
-                    currentGameData.currentBetIndex = 0;
-                }
-                const betAmount = initData.gameData.Bets[currentGameData.currentBetIndex];
-                this.CurrentLineText.setText(betAmount);
-                let trippleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 500)
-                let doubleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100)
-                let singleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50)
-                let mixedSevenamount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 10);
-                let mixedBarAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 4)
-                let anyAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 2)
-                let tirpleBar = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 20)
-                let trippleBarBar = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 30)
-                this.trippleSevenAmount.updateLabelText(trippleAmount.toString())
-                this.doubleSevenAmount.updateLabelText(doubleAmount.toString());
-                this.singleSevenAmount.updateLabelText(singleAmount.toString());
-                this.doubleDollarAmount.updateLabelText(doubleAmount.toString());
-                this.mixedSeven.updateLabelText(mixedSevenamount.toString())
-                this.mixedBar.updateLabelText(mixedBarAmount.toString());
-                this.addDollar.updateLabelText(mixedSevenamount.toString());
-                this.anyText.updateLabelText(anyAmount.toString());
-                this.barBarAmount.updateLabelText(trippleBarBar.toString());
-                this.barAmount.updateLabelText(tirpleBar.toString())
-            }
+            // if (!currentGameData.isMoving) {
+            //     currentGameData.currentBetIndex++;
+            //     if (currentGameData.currentBetIndex >= initData.gameData.Bets.length) {
+            //         currentGameData.currentBetIndex = 0;
+            //     }
+            //     const betAmount = initData.gameData.Bets[currentGameData.currentBetIndex];
+            //     this.CurrentLineText.setText(betAmount);
+            //     let trippleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 500)
+            //     let doubleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 100)
+            //     let singleAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 50)
+            //     let mixedSevenamount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 10);
+            //     let mixedBarAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 4)
+            //     let anyAmount = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 2)
+            //     let tirpleBar = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 20)
+            //     let trippleBarBar = new Number(initData.gameData.Bets[currentGameData.currentBetIndex] * 30)
+            //     this.trippleSevenAmount.updateLabelText(trippleAmount.toString())
+            //     this.doubleSevenAmount.updateLabelText(doubleAmount.toString());
+            //     this.singleSevenAmount.updateLabelText(singleAmount.toString());
+            //     this.doubleDollarAmount.updateLabelText(doubleAmount.toString());
+            //     this.mixedSeven.updateLabelText(mixedSevenamount.toString())
+            //     this.mixedBar.updateLabelText(mixedBarAmount.toString());
+            //     this.addDollar.updateLabelText(mixedSevenamount.toString());
+            //     this.anyText.updateLabelText(anyAmount.toString());
+            //     this.barBarAmount.updateLabelText(trippleBarBar.toString());
+            //     this.barAmount.updateLabelText(tirpleBar.toString())
+            // }
             this.scene.time.delayedCall(200, () => {
                 this.pBtn.setTexture('betButton');
                 this.pBtn.setInteractive({ useHandCursor: true, pixelPerfect: true });
             });
         }).setDepth(0);
         container.add(this.pBtn);
-       
-        this.CurrentLineText = this.scene.add.text( gameConfig.scale.width * 0.3, gameConfig.scale.height * 0.95, initData.gameData.Bets[currentGameData.currentBetIndex], {fontFamily:"Arial", fontSize: "35px", color:"#ffffff"}).setOrigin(0.5);
+       let initialBet = initData.gameData.Bets[currentGameData.currentBetIndex] * 3
+        this.CurrentLineText = this.scene.add.text( gameConfig.scale.width * 0.3, gameConfig.scale.height * 0.95, initialBet.toString(), {fontFamily:"Arial", fontSize: "35px", color:"#ffffff"}).setOrigin(0.5);
         //Line Count
         this.add(this.CurrentLineText).setDepth(1)
     }
@@ -472,6 +474,95 @@ export class UiContainer extends Phaser.GameObjects.Container {
             // this.maxbetBtn.setInteractive({ useHandCursor: true, pixelPerfect: true });
             this.pBtn.setInteractive({ useHandCursor: true, pixelPerfect: true });
         }        
+    }
+
+    betOption() {
+        if (this.betContainer) {
+            this.betContainer.destroy();
+            this.betContainer = null;
+            return;
+        }
+        this.betContainer = this.scene.add.container(0, 0).setDepth(15);
+        const closeOnOutsideClick = this.scene.add.rectangle(0,  0, gameConfig.scale.width,  gameConfig.scale.height, 0x000000, 0.01).setOrigin(0).setInteractive();
+        closeOnOutsideClick.setDepth(14); // Set depth lower than bet container
+        closeOnOutsideClick.on('pointerdown', () => {
+            if (this.betContainer) {
+                this.betContainer.destroy();
+                this.betContainer = null;
+            }
+            closeOnOutsideClick.destroy();
+        });
+        
+        this.betContainer.add(closeOnOutsideClick);
+            const popupBg = this.scene.add.image(gameConfig.scale.width * 0.3, gameConfig.scale.height * 0.6,'betContainer').setOrigin(0.5);
+            popupBg.setDisplaySize(400, 500);
+        
+            const bets = [...initData.gameData.Bets].reverse()
+            const rows = 5;
+            const cols = 3;
+            const buttonWidth = 120;
+            const buttonHeight = 90;
+            const padding = 7;
+        
+            // Calculate starting position relative to popup background
+            let startX = popupBg.x - ((cols * (buttonWidth + padding)) / 2) + (buttonWidth / 2);
+            let startY = popupBg.y - ((rows * (buttonHeight + padding)) / 2) + (buttonHeight / 2);    
+            this.betContainer.add([ popupBg]);
+        
+            // Create bet buttons
+            for (let i = 0; i < bets.length; i++) {
+                const row = Math.floor(i / cols);
+                const col = i % cols;
+                const x = startX + (col * (buttonWidth + padding));
+                const y = startY + (row * (buttonHeight + padding));
+        
+                // Create button background
+                const betButton = this.scene.add.image(x, y, 'betContainerButon')
+                    .setDisplaySize(buttonWidth, buttonHeight)
+                    .setInteractive({ useHandCursor: true });
+        
+                // Add hover effect
+                betButton.on('pointerover', () => {
+                    betButton.setTint(0x999999);
+                });
+                
+                betButton.on('pointerout', () => {
+                    betButton.clearTint();
+                });
+        
+                let betNumber = (bets[i] * 3).toFixed(2)
+                // Create bet text
+                const betText = this.scene.add.text(x, y, betNumber.toString(), {fontSize: '24px', fontFamily: 'Arial', color: '#ffffff',
+                    align: 'center'
+                }).setOrigin(0.5);
+        
+                betButton.on('pointerdown', () => {
+                    this.bnuttonMusic("buttonpressed");
+                    currentGameData.currentBetIndex = i;
+                    this.CurrentLineText.setText(betNumber);
+                    this.updateAllAmounts(Number(bets[i]));
+                    // this.updateAllAmounts(bets[i]);
+                    if (this.betContainer) {
+                        this.betContainer.destroy();
+                        this.betContainer = null;
+                    }
+                });
+        
+                this.betContainer.add([betButton, betText]);
+            }
+            this.add(this.betContainer);
+    }
+    private updateAllAmounts(betAmount: number) {
+        this.trippleSevenAmount.updateLabelText((betAmount * 500).toString());
+        this.doubleSevenAmount.updateLabelText((betAmount * 100).toString());
+        this.singleSevenAmount.updateLabelText((betAmount * 50).toString());
+        this.doubleDollarAmount.updateLabelText((betAmount * 100).toString());
+        this.mixedSeven.updateLabelText((betAmount * 10).toString());
+        this.mixedBar.updateLabelText((betAmount * 4).toString());
+        this.addDollar.updateLabelText((betAmount * 10).toString());
+        this.anyText.updateLabelText((betAmount * 2).toString());
+        this.barBarAmount.updateLabelText((betAmount * 30).toString());
+        this.barAmount.updateLabelText((betAmount * 20).toString());
     }
 
     bnuttonMusic(key: string){

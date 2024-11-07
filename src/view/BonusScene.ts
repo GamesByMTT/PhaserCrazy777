@@ -1,6 +1,5 @@
 import Phaser, { Scene } from "phaser";
 import { Globals, initData, ResultData } from "../scripts/Globals";
-import { gameConfig } from "../scripts/appconfig";
 import SoundManager from "../scripts/SoundManager";
 let values = initData.gameData.BonusData
 export default class BonusScene extends Scene{
@@ -12,8 +11,6 @@ export default class BonusScene extends Scene{
     columnRight!: Phaser.GameObjects.Sprite
     roofTop!: Phaser.GameObjects.Sprite
     wheel!: Phaser.GameObjects.Sprite
-    Stair!: Phaser.GameObjects.Sprite
-    snow!: Phaser.GameObjects.Sprite
     spinWheelBg!: Phaser.GameObjects.Sprite
     spinCircle!: Phaser.GameObjects.Sprite
     spinCenter!: Phaser.GameObjects.Sprite
@@ -27,7 +24,7 @@ export default class BonusScene extends Scene{
         const { width, height } = this.cameras.main;
         this.bonusContainer = this.add.container();
         this.SceneBg = new Phaser.GameObjects.Sprite(this, width/2, height/2, 'Background').setDisplaySize(width, height)
-        this.Stair = new Phaser.GameObjects.Sprite(this, width/2, height/1.08, 'stairs').setDepth(0)
+       
         this.spinWheelBg = new Phaser.GameObjects.Sprite(this, width/2, height/2 - 40, 'wheelBg').setScale(0.6)
         // Create the spin circle sprite
         this.spinCircle = new Phaser.GameObjects.Sprite(this, 0, 0, 'spinCircle').setScale(0.7).setDepth(0);
@@ -49,7 +46,6 @@ export default class BonusScene extends Scene{
         // Add sprites to the bonusContainer in the correct order
         this.bonusContainer.add([
             this.SceneBg,
-            this.Stair,
             this.spinWheelBg,
             this.spinContainer,
             this.spinCenter,

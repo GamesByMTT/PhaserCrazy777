@@ -68,7 +68,7 @@ export class Lines extends Phaser.GameObjects.Container {
 
     createLineSprite(scene: Phaser.Scene, startX: number, startY: number, distance: number, angle: number): Phaser.GameObjects.Sprite {
         // Assuming 'lineSegment' is the key of your preloaded sprite
-        const lineSprite = scene.add.sprite(startX, startY, 'winLine');
+        const lineSprite = scene.add.sprite(startX, startY, '');
 
         // Adjust the size of the sprite to match the distance between points
         lineSprite.setDisplaySize(distance, lineSprite.height); 
