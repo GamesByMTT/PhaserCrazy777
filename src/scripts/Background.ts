@@ -14,7 +14,6 @@ export default class Background extends Scene{
       this.soundManager = new SoundManager(this) 
   }
     preload(){
-      console.log("Background Scene Load");
         // this.load.image("BackgroundNew", "src/sprites/NewBackground.png");
        
     }

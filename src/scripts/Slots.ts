@@ -228,7 +228,7 @@ export class Slots extends Phaser.GameObjects.Container {
         this.scene.tweens.add({
             targets: reel,
             y: targetY,
-            duration: 900,
+            duration: 1000,
             ease: 'Cubic.easeOut',
             onComplete: () => {
                 if (this.reelTweens[reelIndex]) {
@@ -284,9 +284,8 @@ export class Slots extends Phaser.GameObjects.Container {
                     if (elementId !== '0') {
                         if (this.slotSymbols[x] && this.slotSymbols[y][x] && ResultData.playerData.currentWining > 0) {
                             this.playSymbolAnimation(x, y, elementId, allSame, firstThreeSymbols[0]);
+                            this.winMusic("winMusic");
                         }
-                        // Play win sound for each non-zero symbol
-                        this.winMusic("winMusic");
                     } else {
                         // console.log(`Skipping animation for symbol at (${y}, ${x})`);
                     }
@@ -318,8 +317,7 @@ export class Slots extends Phaser.GameObjects.Container {
 
         if (this.scene.anims.exists(animationId)) {
             if (isFirstThreeSame && x < 3 && elementId === firstSymbol) {
-                console.log("Check all are same");
-               
+             
             }
             symbol.playAnimation(animationId);
         } else {

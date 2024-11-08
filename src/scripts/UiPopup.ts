@@ -236,7 +236,6 @@ export class UiPopups extends Phaser.GameObjects.Container {
 
     toggleSound(onOff: any) {
         // Toggle sound state
-        console.log(onOff, "onOff");
         currentGameData.soundMode = !currentGameData.soundMode
         this.soundEnabled = !this.soundEnabled;
         if (this.soundEnabled) {
@@ -403,7 +402,6 @@ export class UiPopups extends Phaser.GameObjects.Container {
         
             // Touch start
             scrollContainer.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-                console.log("touc 2");
                 isDragging = true;
                 startY = pointer.y;
                 currentY = scrollContainer.y;
@@ -414,7 +412,6 @@ export class UiPopups extends Phaser.GameObjects.Container {
                 if (!isDragging) return;
                 const deltaY = pointer.y - startY;
                 const newY = currentY + deltaY;
-                // console.log(deltaY, newY, startY, pointer.y);
                 // Calculate bounds
                 const maxY = 300; // Top bound
                 const minY = -(contentHeight - 600); // Bottom bound
@@ -572,7 +569,6 @@ export class UiPopups extends Phaser.GameObjects.Container {
         ];
         const crossButton = new Phaser.GameObjects.Sprite(this.scene, -390, -258, "exitButton").setInteractive()
         crossButton.on('pointerdown', (pointerdown: Phaser.Input.Pointer)=>{
-            console.log("click");
             this.UiContainer.onSpin(false);
             this.exitBtn.setInteractive()
             popupContainer.destroy();

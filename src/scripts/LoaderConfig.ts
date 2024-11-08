@@ -513,11 +513,10 @@ export const fontData = ["Montserrat"];
 
 export const LoaderSoundConfig: any = {
         backgroundMusic: "src/sounds/Teaser.mp3",
-        onSpin :  "/src/sounds/slot-machine-loop.mp3",
-        spinButton: "src/sounds/spin.wav",
+        // onSpin :  "/src/sounds/slot-machine-loop.mp3",
+        spinButton: "src/sounds/spin.mp3",
         winMusic: "src/sounds/JackpotWinner.mp3",
         buttonpressed: "src/sounds/Game-Button.wav",
-        spinWheelMusic: "src/sounds/spinWheel.mp3"
  
 };
 

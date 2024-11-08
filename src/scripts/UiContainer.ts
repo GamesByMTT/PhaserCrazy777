@@ -213,7 +213,6 @@ export class UiContainer extends Phaser.GameObjects.Container {
         this.currentWiningText = this.scene.add.text(gameConfig.scale.width/2, gameConfig.scale.height * 0.95, currentWining.toFixed(2), {fontFamily:"Arial", color: "#ffffff", fontSize: "35px"} ).setOrigin(0.5);
         this.add(this.currentWiningText)
         if(currentWining > 0){
-            console.log(currentWining, "currentWining");
             this.scene.tweens.add({
                 targets:  this.currentWiningText,
                 scaleX: 1.3, 
@@ -347,25 +346,6 @@ export class UiContainer extends Phaser.GameObjects.Container {
         ).setDepth(0);
     }
 
-   
-    /**
-     * @method freeSpininit 
-     * @description this method is used for showing the number of freeSpin value at the top of reels
-     */
-    freeSpininit(freeSpinNumber: number){
-        if(freeSpinNumber == 0){
-            if(this.freeSpinBgImg){
-                this.freeSpinBgImg.destroy();
-                this.freeSpinText.destroy()
-                this.freeSpinContainer.destroy();
-            }   
-        }
-        if(freeSpinNumber >= 1){
-
-        }else{
-           
-        }
-    }
     /**
      * @method startSpinRecursion
      * @param spinCallBack 
@@ -374,7 +354,7 @@ export class UiContainer extends Phaser.GameObjects.Container {
         if (this.isAutoSpinning && currentGameData.currentBalance > 0) {
             // this.startFireAnimation();
             // Delay before the next spin
-            const delay = currentGameData.isMoving ? 3000 : 5000;
+            const delay = currentGameData.isMoving ? 5000 : 7000;
             this.scene.time.delayedCall(delay, () => {
                 if (this.isAutoSpinning && currentGameData.currentBalance >= 0) {
                     Globals.Socket?.sendMessage("SPIN", {
@@ -546,7 +526,6 @@ export class UiContainer extends Phaser.GameObjects.Container {
     }
 
     handleMatchingAnimation(symbolId: string, reelIndex: number) {
-        console.log(`Matching symbol ${symbolId} on reel ${reelIndex}`);
         // Here you can create special effects or animations
         // based on the matching symbols
         
@@ -555,7 +534,6 @@ export class UiContainer extends Phaser.GameObjects.Container {
     }
 
     update(dt: number){
-        console.log("check container");
         
     }
 }

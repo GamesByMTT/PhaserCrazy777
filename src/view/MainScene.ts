@@ -6,7 +6,6 @@ import { UiPopups } from '../scripts/UiPopup';
 import LineSymbols from '../scripts/LineSymbols';
 import { Globals, ResultData, currentGameData, initData } from '../scripts/Globals';
 import { gameConfig } from '../scripts/appconfig';
-import BonusScene from './BonusScene';
 import SoundManager from '../scripts/SoundManager';
 
 export default class MainScene extends Scene {
@@ -34,7 +33,6 @@ export default class MainScene extends Scene {
     uiContainer!: UiContainer;
     uiPopups!: UiPopups;
     lineSymbols!: LineSymbols
-    onSpinSound!: Phaser.Sound.BaseSound
     logo!: Phaser.GameObjects.Sprite
     WheelawardText!: Phaser.GameObjects.Sprite
     private mainContainer!: Phaser.GameObjects.Container;
@@ -48,8 +46,6 @@ export default class MainScene extends Scene {
      * @method create method used to create scene and add graphics respective to the x and y coordinates
      */
     create() {
-        console.log("MainScene Create");
-        
         // Set up the background
         const { width, height } = this.cameras.main;
         // Initialize main container
@@ -118,9 +114,7 @@ export default class MainScene extends Scene {
      * @description update the spirte of Spin Button after reel spin and emit Lines number to show the line after wiining
      */
     onResultCallBack() {
-        const onSpinMusic = "onSpin"
         this.uiContainer.onSpin(false);
-        this.soundManager.stopSound(onSpinMusic)
         // this.lineGenerator.showLines(ResultData.gameData.linesToEmit);
     }
     /**
@@ -128,10 +122,7 @@ export default class MainScene extends Scene {
      * @description on spin button click moves the reel on Seen and hide the lines if there are any
      */
     onSpinCallBack() {
-        const onSpinMusic = "onSpin"
-        this.soundManager.playSound(onSpinMusic)
         this.slot.moveReel();
-        
         if(this.winningLine?.active){
             this.winningLine.stop();
             this.winningLine.destroy();
@@ -186,7 +177,6 @@ export default class MainScene extends Scene {
     }
 
     private startFreeSpins() {
-        console.log("Starting Free Spins Sequence");
         // Clear any existing interval
         if (this.freeSpinInterval) {
             clearInterval(this.freeSpinInterval);
@@ -194,7 +184,6 @@ export default class MainScene extends Scene {
         // Set interval for free spins
         this.freeSpinInterval = setInterval(() => {
             if (ResultData.gameData.freeSpinCount > 0) {
-                console.log(`Free Spin triggered. Remaining: ${ResultData.gameData.freeSpinCount}`);
                 this.onSpinCallBack();
                 ResultData.gameData.freeSpinCount--;
                 setTimeout(() => {
@@ -208,7 +197,6 @@ export default class MainScene extends Scene {
     }
     
     private endFreeSpins() {
-        console.log("Ending Free Spins Sequence");
         // Clear the interval
         if (this.freeSpinInterval) {
             clearInterval(this.freeSpinInterval);
@@ -219,15 +207,8 @@ export default class MainScene extends Scene {
         this.reelBg.setTexture("reelBg");
         this.SmallBoxxReel.setTexture("SmallBoxxReel");
         this.uiContainer.onSpin(false);
-        // Any additional cleanup or end-of-free-spins logic
-        this.handleFreeSpinsEnd();
     }
     
-    private handleFreeSpinsEnd() {
-        console.log("Free spins completed");
-        // Add any additional end-of-free-spins logic here
-    }
-
     // Winning Animatiom over Symbol lineGlow
     playwinningArrowAnimation() {
         const respinFrames: Phaser.Types.Animations.AnimationFrame[] = [];

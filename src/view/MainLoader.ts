@@ -176,7 +176,6 @@ export default class MainLoader extends Scene {
 
     private startLoadingAssets() {
         // Load all assets from LoaderConfig
-        console.log("startLoadingAssets");
         this.load.start();
         Object.entries(LoaderConfig).forEach(([key, value]) => {
             this.load.image(key, value);
